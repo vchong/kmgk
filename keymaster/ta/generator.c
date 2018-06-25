@@ -412,6 +412,8 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		EMSG("Failed to allocate transient object, res=%x", res);
 		goto gk_out;
 	}
+	DMSG("key_size = %u, sizeof(attrs_in) = %zu, attrs_in_count = %u",
+			key_size, sizeof(attrs_in), attrs_in_count);
 	res = TEE_GenerateKey(obj_h, key_size, attrs_in, attrs_in_count);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to generate key via TEE_GenerateKey, res = %x", res);
@@ -423,13 +425,16 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 
 	TEE_MemMove(key_material, &type, sizeof(type));
 	padding += sizeof(type);
+	DMSG("padding = %u", padding);
 	TEE_MemMove(key_material + padding, &key_size, sizeof(key_size));
 	padding += sizeof(key_size);
+	DMSG("padding = %u", padding);
 	for (uint32_t i = 0; i < attr_count; i++) {
 		attr_size = KM_MAX_ATTR_SIZE;
 		TEE_MemMove(key_material + padding, attributes + i,
 						sizeof(attributes[i]));
 		padding += sizeof(attributes[i]);
+		DMSG("i = %u padding = %u", i, padding);
 		if (is_attr_value(attributes[i])) {
 			/* value */
 			res = TEE_GetObjectValueAttribute(obj_h,
@@ -440,8 +445,10 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			}
 			TEE_MemMove(key_material + padding, &a, sizeof(a));
 			padding += sizeof(a);
+			DMSG("i = %u padding = %u a = %u", i, padding, a);
 			TEE_MemMove(key_material + padding, &b, sizeof(b));
 			padding += sizeof(b);
+			DMSG("i = %u padding = %u b = %u", i, padding, b);
 		} else {
 			/* buffer */
 			res = TEE_GetObjectBufferAttribute(obj_h,
@@ -454,8 +461,10 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			TEE_MemMove(key_material + padding,
 					&attr_size, sizeof(attr_size));
 			padding += sizeof(attr_size);
+			DMSG("i = %u padding = %u attr_size = %u", i, padding, attr_size);
 			TEE_MemMove(key_material + padding, buffer, attr_size);
 			padding += attr_size;
+			DMSG("i = %u padding = %u attr_size = %u", i, padding, attr_size);
 		}
 	}
 gk_out:
@@ -532,28 +541,46 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	TEE_MemMove(key_material, key_blob->key_material,
 					key_blob->key_material_size);
 	res = TA_decrypt(key_material, key_blob->key_material_size);
-	if (res != KM_ERROR_OK) {
-		EMSG("Failed to decript key blob");
+	if (res != TEE_SUCCESS) {
+		if (res == (keymaster_error_t)TEE_ERROR_MAC_INVALID) {
+			res = KM_ERROR_INVALID_KEY_BLOB;
+			EMSG("Decryption probably succeeded but auth failed");
+		}
+		else if (res == (keymaster_error_t)TEE_ERROR_SHORT_BUFFER) {
+			res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
+			EMSG("Output or tag buffer too small for output");
+		}
+		else
+			EMSG("Failed to decript key blob");
 		goto out_rk;
 	}
 	TEE_MemMove(type, key_material, sizeof(*type));
 	padding += sizeof(*type);
+	DMSG("padding = %u *type = 0x%x", padding, *type);
 	switch (*type) {
 	case TEE_TYPE_AES:
 		attrs_count = KM_ATTR_COUNT_AES_HMAC;
 		algorithm = KM_ALGORITHM_AES;
+		DMSG("AES attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 		break;
 	case TEE_TYPE_RSA_KEYPAIR:
 		attrs_count = KM_ATTR_COUNT_RSA;
 		algorithm = KM_ALGORITHM_RSA;
+		DMSG("RSA attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 		break;
 	case TEE_TYPE_ECDSA_KEYPAIR:
 		attrs_count = KM_ATTR_COUNT_EC;
 		algorithm = KM_ALGORITHM_EC;
+		DMSG("EC attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 		break;
 	default: /* HMAC */
 		attrs_count = KM_ATTR_COUNT_AES_HMAC;
 		algorithm = KM_ALGORITHM_HMAC;
+		DMSG("HMAC attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 	}
 	attrs = TEE_Malloc(attrs_count * sizeof(TEE_Attribute),
 						TEE_MALLOC_FILL_ZERO);
@@ -564,21 +591,28 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	}
 	TEE_MemMove(key_size, key_material + padding, sizeof(*key_size));
 	padding += sizeof(*key_size);
+	DMSG("*key_size = %u attrs_count = %u padding = %u",
+			*key_size, attrs_count, padding);
 	for (uint32_t i = 0; i < attrs_count; i++) {
 		TEE_MemMove(&tag, key_material + padding, sizeof(tag));
 		padding += sizeof(tag);
+		DMSG("i = %u padding = %u tag = %u", i, padding, tag);
 		if (is_attr_value(tag)) {
 			/* value */
 			TEE_MemMove(&a, key_material + padding, sizeof(a));
 			padding += sizeof(a);
+			DMSG("i = %u padding = %u a = %u", i, padding, a);
 			TEE_MemMove(&b, key_material + padding, sizeof(b));
 			padding += sizeof(b);
+			DMSG("i = %u padding = %u b = %u", i, padding, b);
 			TEE_InitValueAttribute(attrs + i, tag, a, b);
 		} else {
 			/* buffer */
 			TEE_MemMove(&attr_size, key_material + padding,
 							sizeof(attr_size));
 			padding += sizeof(attr_size);
+			DMSG("i = %u padding = %u attr_size = %u",
+					i, padding, attr_size);
 			/* will be freed when parameters array is destroyed */
 			buf = TEE_Malloc(attr_size, TEE_MALLOC_FILL_ZERO);
 			if (!buf) {
@@ -594,6 +628,8 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 			}
 			TEE_MemMove(buf, key_material + padding, attr_size);
 			padding += attr_size;
+			DMSG("i = %u padding = %u attr_size = %u",
+					i, padding, attr_size);
 			TEE_InitRefAttribute(attrs + i, tag, buf, attr_size);
 		}
 	}
@@ -606,12 +642,17 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	}
 	res = TEE_AllocateTransientObject(*type, *key_size, obj_h);
 	if (res != TEE_SUCCESS) {
+		if (res == (keymaster_error_t)TEE_ERROR_OUT_OF_MEMORY)
+			res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
+		else if (res == (keymaster_error_t)TEE_ERROR_NOT_SUPPORTED)
+			res = KM_ERROR_UNSUPPORTED_KEY_SIZE;
 		EMSG("Error TEE_AllocateTransientObject res = %x type = %x",
 								 res, *type);
 		goto out_rk;
 	}
 	res = TEE_PopulateTransientObject(*obj_h, attrs, attrs_count);
 	if (res != TEE_SUCCESS) {
+		res = KM_ERROR_INVALID_ARGUMENT;
 		EMSG("Error TEE_PopulateTransientObject res = %x", res);
 		goto out_rk;
 	}
@@ -693,7 +734,14 @@ keymaster_error_t TA_create_operation(TEE_OperationHandle *operation,
 				algo = TEE_ALG_RSASSA_PKCS1_V1_5_SHA512;
 				break;
 			case KM_DIGEST_NONE:
-				algo = TEE_ALG_RSASSA_PKCS1_V1_5;
+				/* if PaddingMode::RSA_PKCS1_1_5_SIGN and
+				 * Digest::NONE, then use raw RSA signature
+				 * (see https://source.android.com/security/keystore/implementer-ref#begin) */
+				algo = TEE_ALG_RSA_NOPAD;
+				if (purpose == KM_PURPOSE_SIGN)
+					mode = TEE_MODE_DECRYPT;
+				else if (purpose == KM_PURPOSE_VERIFY)
+					mode = TEE_MODE_ENCRYPT;
 				break;
 			default:
 				EMSG("Unsupported by RSA PKCS digest");

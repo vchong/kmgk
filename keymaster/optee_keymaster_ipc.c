@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <cutils/log.h>
+#include <log/log.h>
 #include <tee_client_api.h>
 #include <hardware/keymaster2.h>
 
@@ -27,7 +27,7 @@
 #include "common.h"
 
 #undef LOG_TAG
-#define LOG_TAG "OpteeKeymaster"
+#define LOG_TAG "OpteeKeymaster_ipc"
 
 static TEEC_Context ctx;
 static TEEC_Session sess;
@@ -193,6 +193,7 @@ keymaster_error_t optee_keystore_call(uint32_t cmd, void* in, uint32_t in_size, 
     uint32_t res;
     uint32_t err_origin;
 
+    ALOGD("%s %d %u\n", __func__, __LINE__, cmd);
     if (!connected) {
         ALOGE("Keystore trusted application is not connected");
         return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;

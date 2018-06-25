@@ -33,12 +33,13 @@ TEE_Result TA_CreateEntryPoint(void)
 	TEE_Param	params[TEE_NUM_PARAMS];
 
 	const TEE_UUID asn1_parser_uuid = ASN1_PARSER_UUID;
-	const TEE_UUID rng_entropy_uuid = RNG_ENTROPY_UUID;
+	const TEE_UUID rng_entropy_uuid = PTA_SYSTEM_UUID /*RNG_ENTROPY_UUID*/;
 
 	uint32_t exp_param_types = TEE_PARAM_TYPES(TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE);
+	DMSG("%s %d", __func__, __LINE__);
 	TA_reset_operations_table();
 
 	res = TA_create_secret_key();
@@ -73,6 +74,7 @@ exit:
 
 void TA_DestroyEntryPoint(void)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	TA_free_master_key();
 	TEE_CloseTASession(sessionSTA);
 	TEE_CloseTASession(session_rngSTA);
@@ -87,6 +89,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE);
+	DMSG("%s %d", __func__, __LINE__);
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
 
@@ -95,12 +98,14 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 
 void TA_CloseSessionEntryPoint(void *sess_ctx __unused)
 {
+	DMSG("%s %d", __func__, __LINE__);
 }
 
 static uint32_t TA_possibe_size(const uint32_t type, const uint32_t key_size,
 				const keymaster_blob_t input,
 				const uint32_t tag_len)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	switch (type) {
 	case TEE_TYPE_AES:
 		/*
@@ -143,6 +148,7 @@ static keymaster_error_t TA_addRngEntropy(TEE_Param params[TEE_NUM_PARAMS])
 	in_size = (size_t) params[0].memref.size;
 	in_end = in + in_size;
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (in_size == 0)
 		return KM_ERROR_OK;
 	if (IS_OUT_OF_BOUNDS(in, in_end, sizeof(data_length))) {
@@ -169,7 +175,8 @@ static keymaster_error_t TA_addRngEntropy(TEE_Param params[TEE_NUM_PARAMS])
 	params_tee[0].memref.buffer = data;
 	params_tee[0].memref.size = data_length;
 	res = TEE_InvokeTACommand(session_rngSTA, TEE_TIMEOUT_INFINITE,
-				CMD_ADD_RNG_ENTROPY, sta_param_types, params_tee, NULL);
+			PTA_SYSTEM_ADD_RNG_ENTROPY /*CMD_ADD_RNG_ENTROPY*/,
+			sta_param_types, params_tee, NULL);
 	if (res != TEE_SUCCESS) {
 		EMSG("Invoke command for RNG static TA failed, res=%x", res);
 		goto out;
@@ -204,6 +211,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in += TA_deserialize_param_set(in, in_end, &params_t, false, &res);
 	if (res != KM_ERROR_OK)
 		goto exit;
@@ -234,8 +242,11 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 		goto exit;
 	}
 	if (key_algorithm == KM_ALGORITHM_EC) {
+		DMSG("key_algorithm == KM_ALGORITHM_EC");
 		TA_add_ec_curve(&params_t, key_size);
 	}
+	DMSG("key_algorithm=%d key_rsa_public_exponent=%lu",
+			key_algorithm, key_rsa_public_exponent);
 	//Newly-generated key's characteristics divided appropriately
 	//into hardware-enforced and software-enforced lists
 	//(except APPLICATION_ID and APPLICATION_DATA)
@@ -246,7 +257,8 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 
 	key_buffer_size = TA_get_key_size(key_algorithm);
 
-	key_blob.key_material_size = characts_size + key_buffer_size;
+	key_blob.key_material_size = characts_size + key_buffer_size
+			+ TAG_LENGTH;
 	if (key_blob.key_material_size % BLOCK_SIZE != 0) {
 		/* do size alignment */
 		key_blob.key_material_size += BLOCK_SIZE -
@@ -309,6 +321,7 @@ static keymaster_error_t TA_getKeyCharacteristics(
 	uint32_t type = 0;
 	bool exportable = false;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -388,6 +401,7 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 	uint32_t curve = UNDEFINED;
 	uint64_t key_rsa_public_exponent = UNDEFINED;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -494,7 +508,8 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto out;
 	key_buffer_size = TA_get_key_size(key_algorithm);
-	key_blob.key_material_size = characts_size + key_buffer_size;
+	key_blob.key_material_size = characts_size + key_buffer_size
+			+ TAG_LENGTH;
 	if (key_blob.key_material_size % BLOCK_SIZE != 0) {
 		/* size alignment */
 		key_blob.key_material_size += BLOCK_SIZE -
@@ -559,6 +574,7 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	uint32_t key_size = UNDEFINED;
 	uint32_t type = 0;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -659,6 +675,7 @@ static keymaster_error_t TA_attestKey(TEE_Param params[TEE_NUM_PARAMS])
 	TA_wipe_attest_objs();
 #endif
 
+	DMSG("%s %d", __func__, __LINE__);
 	//This call creates keys/certs only once during first TA run
 	res = TA_create_attest_objs(sessionSTA);
 	if (res != TEE_SUCCESS) {
@@ -748,7 +765,7 @@ static keymaster_error_t TA_attestKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto exit;
 
-	if (app_id != NULL && app_data != NULL) {//TODO
+	if (app_id != NULL && app_data != NULL) {
 		res = TA_check_permission(&params_t, *app_id, *app_data, &exportable);
 		if (res != KM_ERROR_OK)
 			goto exit;
@@ -766,8 +783,8 @@ static keymaster_error_t TA_attestKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto exit;
 
-	if (includeUniqueID == true) {//TODO
-		//TA_generate_UniqueID(...);
+	if (includeUniqueID == true) {
+		//TODO TA_generate_UniqueID(...);
 	}
 
 	//Allocate memory for chain of certificates
@@ -838,6 +855,7 @@ static keymaster_error_t TA_upgradeKey(TEE_Param params[TEE_NUM_PARAMS])
 	keymaster_key_blob_t upgraded_key = EMPTY_KEY_BLOB;/* OUT */
 	keymaster_error_t res = KM_ERROR_OK;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -863,6 +881,7 @@ out:
 //Deletes the provided key
 static keymaster_error_t TA_deleteKey(TEE_Param params[TEE_NUM_PARAMS])
 {
+	DMSG("%s %d", __func__, __LINE__);
 	(void)&params[0];
 	return KM_ERROR_OK;
 }
@@ -870,6 +889,7 @@ static keymaster_error_t TA_deleteKey(TEE_Param params[TEE_NUM_PARAMS])
 //Deletes all keys
 static keymaster_error_t TA_deleteAllKeys(TEE_Param params[TEE_NUM_PARAMS])
 {
+	DMSG("%s %d", __func__, __LINE__);
 	(void)&params[0];
 	return KM_ERROR_OK;
 }
@@ -877,6 +897,7 @@ static keymaster_error_t TA_deleteAllKeys(TEE_Param params[TEE_NUM_PARAMS])
 //Permanently disable the ID attestation feature.
 static keymaster_error_t TA_destroyAttestationIds(TEE_Param params[TEE_NUM_PARAMS])
 {
+	DMSG("%s %d", __func__, __LINE__);
 	(void)&params[0];
 	/* TODO Delete all keys */
 	return KM_ERROR_OK;
@@ -915,6 +936,7 @@ static keymaster_error_t TA_begin(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_OperationHandle *operation = TEE_HANDLE_NULL;
 	TEE_OperationHandle *digest_op = TEE_HANDLE_NULL;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -1065,6 +1087,7 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_ObjectHandle obj_h = TEE_HANDLE_NULL;
 	bool is_input_ext = false;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -1177,6 +1200,7 @@ static keymaster_error_t TA_finish(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_ObjectHandle obj_h = TEE_HANDLE_NULL;
 	bool is_input_ext = false;
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -1294,6 +1318,7 @@ static keymaster_error_t TA_abort(TEE_Param params[TEE_NUM_PARAMS])
 	keymaster_error_t res=  KM_ERROR_OK;
 	keymaster_operation_handle_t operation_handle = 0;		/* IN */
 
+	DMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 
@@ -1322,36 +1347,51 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx __unused,
 	switch(cmd_id) {
 	//Keymaster commands:
 	case KM_ADD_RNG_ENTROPY:
+		DMSG("KM_ADD_RNG_ENTROPY");
 		return TA_addRngEntropy(params);
 	case KM_GENERATE_KEY:
+		DMSG("KM_GENERATE_KEY");
 		return TA_generateKey(params);
 	case KM_GET_KEY_CHARACTERISTICS:
+		DMSG("KM_GET_KEY_CHARACTERISTICS");
 		return TA_getKeyCharacteristics(params);
 	case KM_IMPORT_KEY:
+		DMSG("KM_IMPORT_KEY");
 		return TA_importKey(params);
 	case KM_EXPORT_KEY:
+		DMSG("KM_EXPORT_KEY");
 		return TA_exportKey(params);
 	case KM_ATTEST_KEY:
+		DMSG("KM_ATTEST_KEY");
 		return TA_attestKey(params);
 	case KM_UPGRADE_KEY:
+		DMSG("KM_UPGRADE_KEY");
 		return TA_upgradeKey(params);
 	case KM_DELETE_KEY:
+		DMSG("KM_DELETE_KEY");
 		return TA_deleteKey(params);
 	case KM_DELETE_ALL_KEYS:
+		DMSG("KM_DELETE_ALL_KEYS");
 		return TA_deleteAllKeys(params);
 	case KM_DESTROY_ATT_IDS:
+		DMSG("KM_DESTROY_ATT_IDS");
 		return TA_destroyAttestationIds(params);
 	case KM_BEGIN:
+		DMSG("KM_BEGIN");
 		return TA_begin(params);
 	case KM_UPDATE:
+		DMSG("KM_UPDATE");
 		return TA_update(params);
 	case KM_FINISH:
+		DMSG("KM_FINISH");
 		return TA_finish(params);
 	case KM_ABORT:
+		DMSG("KM_ABORT");
 		return TA_abort(params);
 
 	//Gatekeeper commands:
 	case KM_GET_AUTHTOKEN_KEY:
+		DMSG("KM_GET_AUTHTOKEN_KEY");
 		return TA_GetAuthTokenKey(params);
 
 	default:

@@ -18,7 +18,8 @@
 #include "master_crypto.h"
 
 //Master key for encryption/decryption of all CA's keys,
-//and also used as HBK during attestation
+//and also used as HBK (hardware-bound private key) during attestation
+
 static uint8_t objID[] = {0xa7U, 0x62U, 0xcfU, 0x11U};
 static uint8_t iv[KEY_LENGTH];
 
@@ -31,7 +32,9 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 	uint32_t readSize = 0;
 	TEE_ObjectHandle object = TEE_HANDLE_NULL;
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (masterKey != TEE_HANDLE_NULL) {
+		DMSG("Use existing masterKey");
 		*secretKey = masterKey;
 		return TEE_SUCCESS;
 	}
@@ -90,6 +93,7 @@ TEE_Result TA_create_secret_key(void)
 	TEE_ObjectHandle object = TEE_HANDLE_NULL;
 	uint8_t keyData[KEY_LENGTH];
 
+	DMSG("%s %d", __func__, __LINE__);
 	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 				objID, sizeof(objID),
 				TEE_DATA_FLAG_ACCESS_READ, &object);
@@ -145,7 +149,10 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_ObjectInfo info;
 	TEE_Result res;
 	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
+	uint8_t tag[TAG_LENGTH];
+	uint32_t tagLen = TAG_LENGTH;
 
+	DMSG("%s %d size = %zu", __func__, __LINE__, size);
 	res = TA_open_secret_key(&secretKey);
 	if (res != KM_ERROR_OK) {
 		EMSG("Failed to read secret key");
@@ -165,7 +172,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 	TEE_GetObjectInfo1(secretKey, &info);
 
-	res = TEE_AllocateOperation(&op, TEE_ALG_AES_CBC_NOPAD, mode, info.maxKeySize);
+	res = TEE_AllocateOperation(&op, TEE_ALG_AES_GCM, mode, info.maxKeySize);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate AES operation, res=%x", res);
 		goto exit;
@@ -177,13 +184,28 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 		EMSG("Failed to set secret key, res=%x", res);
 		goto free_op;
 	}
-	TEE_CipherInit(op, iv, sizeof(iv));
-	if (res == TEE_SUCCESS && size > 0)
-		res = TEE_CipherDoFinal(op, data, size, outbuf, &outbuf_size);
+	TEE_AEInit(op, iv, sizeof(iv), TAG_SIZE, 0, 0);
+	if (res == TEE_SUCCESS && size > 0) {
+		if (mode == TEE_MODE_ENCRYPT) {
+			DMSG("tagLen = %u", tagLen);
+			res = TEE_AEEncryptFinal(op, data, size - TAG_LENGTH,
+					outbuf, &outbuf_size,
+					(void *)&tag, &tagLen);
+			DMSG("tagLen = %u", tagLen);
+		}
+		else {
+			res = TEE_AEDecryptFinal(op, data, size - TAG_LENGTH,
+					outbuf, &outbuf_size,
+					(void *)(data + size - TAG_LENGTH), TAG_LENGTH);
+		}
+	}
 	if (res != TEE_SUCCESS)
-		EMSG("Error TEE_CipherDoFinal res=%x", res);
-	else
-		TEE_MemMove(data, outbuf, size);
+		EMSG("Error TEE_AEFinal res=%x", res);
+	else {
+		TEE_MemMove(data, outbuf, size - TAG_LENGTH);
+		if (mode == TEE_MODE_ENCRYPT)
+			TEE_MemMove(data + size - TAG_LENGTH, tag, TAG_LENGTH);
+	}
 free_op:
 	if (op != TEE_HANDLE_NULL)
 		TEE_FreeOperation(op);
@@ -195,16 +217,19 @@ exit:
 
 TEE_Result TA_encrypt(uint8_t *data, const size_t size)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	return TA_execute(data, size, TEE_MODE_ENCRYPT);
 }
 
 TEE_Result TA_decrypt(uint8_t *data, const size_t size)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	return TA_execute(data, size, TEE_MODE_DECRYPT);
 }
 
 void TA_free_master_key(void)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
 	if (TA_open_secret_key(&secretKey) == TEE_SUCCESS) {
 		TEE_FreeTransientObject(secretKey);

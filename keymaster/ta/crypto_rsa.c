@@ -237,6 +237,51 @@ keymaster_error_t TA_rsa_finish(keymaster_operation_t *operation,
 				res = KM_ERROR_INVALID_INPUT_LENGTH;
 				goto out;
 			}
+
+			if (*operation->digest_op == TEE_HANDLE_NULL) {
+				res = TA_do_rsa_pkcs_v1_5_rawpad(&in_buf,
+								 &in_buf_l,
+								 key_size);
+				input->data = in_buf;
+				input->data_length = in_buf_l;
+				if (res != KM_ERROR_OK)
+					goto out;
+
+				if (operation->purpose == KM_PURPOSE_VERIFY) {
+					in_buf = signature.data;
+					in_buf_l = signature.data_length;
+					res = TEE_AsymmetricEncrypt(*operation->operation,
+								    NULL, 0,
+								    in_buf,
+								    in_buf_l, /*in: signature*/
+								    output->data,
+								    out_size); /*out: message + padding*/
+					if ((uint32_t)res == TEE_ERROR_BAD_PARAMETERS ||
+					    (uint32_t)res == TEE_ERROR_SHORT_BUFFER) {
+						res = KM_ERROR_UNKNOWN_ERROR;
+						goto out;
+					}
+
+					output->data_length = *out_size;
+					*out_size = 0;
+					/* input->data starts from zero-byte */
+					if (TEE_MemCompare(output->data,
+							   input->data + 1,
+							   output->data_length) != 0) {
+						EMSG("RSA no pad verification signature failed");
+						res = KM_ERROR_VERIFICATION_FAILED;
+						goto out;
+					}
+				} else if (operation->purpose == KM_PURPOSE_SIGN) {
+					res = TEE_AsymmetricDecrypt(*operation->operation,
+								    NULL, 0,
+								    in_buf,
+								    in_buf_l,
+								    output->data,
+								    out_size);
+				}
+				break;
+			}
 		}
 		if (operation->purpose == KM_PURPOSE_VERIFY &&
 				operation->padding != KM_PAD_NONE) {

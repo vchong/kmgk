@@ -143,3 +143,31 @@ keymaster_error_t TA_do_rsa_pad(uint8_t **input, uint32_t *input_l,
 	*input_l = key_size_bytes;
 	return KM_ERROR_OK;
 }
+
+/* Padding according PKCS#1 v1_5 (https://tools.ietf.org/html/rfc2437#section-9.2.1),
+ * with modification from https://source.android.com/security/keystore/implementer-ref#begin
+ * (when Digest::NONE and PaddingMode::RSA_PKCS1_1_5_SIGN) */
+keymaster_error_t TA_do_rsa_pkcs_v1_5_rawpad(uint8_t **input, uint32_t *input_l,
+					     const uint32_t key_size)
+{
+	uint8_t *buf;
+	uint32_t key_size_bytes = key_size / 8;
+
+	/* Freed before input blob is destroyed by caller */
+	buf = TEE_Malloc(key_size_bytes, TEE_MALLOC_FILL_ZERO);
+	if (!buf) {
+		EMSG("Failed to allocate memory for padded RSA input");
+		return KM_ERROR_MEMORY_ALLOCATION_FAILED;
+	}
+
+	/* adding padding */
+	buf[0] = 0;
+	buf[1] = 1;
+	TEE_MemFill(buf + 2, 0xFF, key_size_bytes - 3 - *input_l);
+	buf[key_size_bytes - *input_l - 1] = 0;
+	TEE_MemMove(buf + key_size_bytes - *input_l, *input, *input_l);
+	TEE_Free(*input);
+	*input = buf;
+	*input_l = key_size_bytes;
+	return KM_ERROR_OK;
+}

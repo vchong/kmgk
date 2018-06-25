@@ -15,7 +15,8 @@
 
 # Include only for HiKey ones in space separated list
 # E.g. hikey hikey960 hikey970
-ifneq (,$(filter $(TARGET_PRODUCT), hikey))
+# Temporarily disable so that this can be built on multiple platforms
+#ifneq (,$(filter $(TARGET_PRODUCT), hikey))
 LOCAL_PATH:= $(call my-dir)
 
 ################################################################################
@@ -50,7 +51,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libutils \
 	android.hardware.gatekeeper@1.0
 
-LOCAL_MULTILIB := 64
+#LOCAL_MULTILIB := 64
 
 include $(BUILD_EXECUTABLE)
 
@@ -59,4 +60,4 @@ include $(BUILD_EXECUTABLE)
 ################################################################################
 include $(LOCAL_PATH)/ta/Android.mk
 
-endif # Include only for HiKey ones.
+#endif # Include only for HiKey ones.

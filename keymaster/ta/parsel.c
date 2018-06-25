@@ -30,6 +30,7 @@ int TA_deserialize_blob(uint8_t *in, const uint8_t *end,
 	const uint8_t *start = in;
 	presence p = KM_POPULATED;
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemFill(blob, 0, sizeof(*blob));
 	if (check_presence) {
 		if (IS_OUT_OF_BOUNDS(in, end, sizeof(p))) {
@@ -80,6 +81,7 @@ int TA_deserialize_param_set(uint8_t *in, const uint8_t *end,
 	const uint8_t *start = in;
 	presence p = KM_POPULATED;
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemFill(params, 0, sizeof(*params));
 	if (check_presence) {
 		if (IS_OUT_OF_BOUNDS(in, end, sizeof(p))) {
@@ -140,6 +142,7 @@ int TA_deserialize_key_blob(const uint8_t *in, const uint8_t *end,
 {
 	uint8_t *key_material;
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (IS_OUT_OF_BOUNDS(in, end, SIZE_LENGTH)) {
 		EMSG("Out of input array bounds on deserialization");
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
@@ -147,17 +150,21 @@ int TA_deserialize_key_blob(const uint8_t *in, const uint8_t *end,
 	}
 	TEE_MemMove(&key_blob->key_material_size, in,
 				sizeof(key_blob->key_material_size));
+	DMSG("key_blob->key_material_size = %zu"
+			"sizeof(key_blob->key_material_size) = %zu",
+			key_blob->key_material_size,
+			sizeof(key_blob->key_material_size));
 	in += SIZE_LENGTH;
 	if (IS_OUT_OF_BOUNDS(in, end, key_blob->key_material_size)) {
 		EMSG("Out of input array bounds on deserialization");
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
 		return SIZE_LENGTH;
 	}
-	/* Freed when deserialized key blob is destoyrd by caller */
+	/* Freed when deserialized key blob is destroyed by caller */
 	key_material = TEE_Malloc(key_blob->key_material_size,
 							TEE_MALLOC_FILL_ZERO);
 	if (!key_material) {
-		EMSG("Fialed to allocate memory for key_material");
+		EMSG("Failed to allocate memory for key_material");
 		*res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		return 0;
 	}
@@ -170,6 +177,7 @@ int TA_deserialize_op_handle(const uint8_t *in, const uint8_t *in_end,
 			keymaster_operation_handle_t *op_handle,
 			keymaster_error_t *res)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	if (IS_OUT_OF_BOUNDS(in, in_end, sizeof(*op_handle))) {
 		EMSG("Out of input array bounds on deserialization");
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
@@ -183,6 +191,7 @@ int TA_deserialize_op_handle(const uint8_t *in, const uint8_t *in_end,
 int TA_deserialize_purpose(const uint8_t *in, const uint8_t *in_end,
 			keymaster_purpose_t *purpose, keymaster_error_t *res)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	if (IS_OUT_OF_BOUNDS(in, in_end, sizeof(*purpose))) {
 		EMSG("Out of input array bounds on deserialization");
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
@@ -196,6 +205,7 @@ int TA_deserialize_key_format(const uint8_t *in, const uint8_t *in_end,
 			keymaster_key_format_t *key_format,
 			keymaster_error_t *res)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	if (IS_OUT_OF_BOUNDS(in, in_end, sizeof(*key_format))) {
 		EMSG("Out of input array bounds on deserialization");
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
@@ -208,6 +218,7 @@ int TA_deserialize_key_format(const uint8_t *in, const uint8_t *in_end,
 /* Serializers */
 int TA_serialize_blob(uint8_t *out, const keymaster_blob_t *blob)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(out, &blob->data_length, sizeof(blob->data_length));
 	out += SIZE_LENGTH;
 	TEE_MemMove(out, blob->data, blob->data_length);
@@ -219,6 +230,7 @@ int TA_serialize_characteristics(uint8_t *out,
 {
 	uint8_t *start = out;
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(out, &characteristics->hw_enforced.length,
 				sizeof(characteristics->hw_enforced.length));
 	out += SIZE_LENGTH;
@@ -255,6 +267,7 @@ int TA_serialize_characteristics(uint8_t *out,
 
 int TA_serialize_key_blob(uint8_t *out, const keymaster_key_blob_t *key_blob)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(out, &key_blob->key_material_size,
 				sizeof(key_blob->key_material_size));
 	out += SIZE_LENGTH;
@@ -267,6 +280,7 @@ int TA_serialize_cert_chain(uint8_t *out,
 			keymaster_error_t *res)
 {
 	uint8_t *start = out;
+	DMSG("%s %d", __func__, __LINE__);
 
 	if (!cert_chain) {
 		EMSG("Failed to allocate memory for certificate chain entries");
@@ -295,6 +309,7 @@ int TA_serialize_param_set(uint8_t *out,
 			const keymaster_key_param_set_t *params)
 {
 	uint8_t *start = out;
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(out, &params->length, sizeof(params->length));
 	out += SIZE_LENGTH;
 
@@ -323,6 +338,7 @@ TEE_Result TA_serialize_rsa_keypair(uint8_t *out,
 	uint8_t tmp_key_attr_buf[RSA_KEY_BUFFER_SIZE];
 	uint32_t key_attr_buf_size = RSA_KEY_BUFFER_SIZE;
 
+	DMSG("%s %d", __func__, __LINE__);
 	//Read root RSA key attributes
 	res = TEE_SeekObjectData(key_obj, 0, TEE_DATA_SEEK_SET);
 	if (res != TEE_SUCCESS) {
@@ -369,6 +385,7 @@ TEE_Result TA_serialize_ec_keypair(uint8_t *out,
 	uint32_t key_attr_buf_size = EC_KEY_BUFFER_SIZE;
 	uint32_t a = 0, a_size = sizeof(uint32_t);
 
+	DMSG("%s %d", __func__, __LINE__);
 	//Read EC key attributes
 	res = TEE_SeekObjectData(key_obj, 0, TEE_DATA_SEEK_SET);
 	if (res != TEE_SUCCESS) {
