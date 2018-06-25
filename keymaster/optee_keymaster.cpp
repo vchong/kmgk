@@ -323,9 +323,11 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
     ptr += osVersion((uint32_t *)ptr);
     ptr += osPatchlevel((uint32_t *)ptr);
 
+    ALOGD("%s %d\n", __func__, __LINE__);
     rc = legacy_enum_conversion(
         optee_keystore_call(KM_GENERATE_KEY, in,
             inSize, out, outSize));
+    ALOGD("%s %d\n", __func__, __LINE__);
     if (rc != ErrorCode::OK) {
         ALOGE("Generate key failed with error code %d [%x]", rc, rc);
         goto error;
@@ -337,11 +339,13 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
         ALOGE("Failed to deserialize key blob");
         goto error;
     }
+    ALOGD("%s %d\n", __func__, __LINE__);
     ptr += deserializeKeyCharacteristics(kmKeyCharacteristics, ptr, rc);
     if (rc != ErrorCode::OK) {
         ALOGE("Failed to deserialize characteristics");
         goto error;
     }
+    ALOGD("%s %d\n", __func__, __LINE__);
 
     resultKeyBlob = kmBlob2hidlVec(kmKeyBlob);
     resultCharacteristics.softwareEnforced = kmParamSet2Hidl(kmKeyCharacteristics.sw_enforced);

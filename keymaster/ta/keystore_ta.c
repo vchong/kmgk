@@ -204,18 +204,25 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in += TA_deserialize_param_set(in, in_end, &params_t, false, &res);
 	if (res != KM_ERROR_OK)
 		goto exit;
+	EMSG("%s %d", __func__, __LINE__);
 	memcpy(&os_version, in, sizeof(os_version));
 	in += 4;
+	EMSG("%s %d", __func__, __LINE__);
 	memcpy(&os_patchlevel, in, sizeof(os_patchlevel));
 	in += 4;
 	/*Add additional parameters*/
+	EMSG("%s %d", __func__, __LINE__);
 	TA_add_origin(&params_t, KM_ORIGIN_GENERATED, true);
+	EMSG("%s %d", __func__, __LINE__);
 	TA_add_creation_datetime(&params_t, true);
+	EMSG("%s %d", __func__, __LINE__);
 	TA_add_os_version_patchlevel(&params_t, os_version, os_patchlevel);
 
+	EMSG("%s %d", __func__, __LINE__);
 	//Parse mandatory and optional parameters
 	res = TA_parse_params(params_t, &key_algorithm, &key_size,
 			      &key_rsa_public_exponent, &key_digest, false);
@@ -236,6 +243,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (key_algorithm == KM_ALGORITHM_EC) {
 		TA_add_ec_curve(&params_t, key_size);
 	}
+	EMSG("%s %d", __func__, __LINE__);
 	//Newly-generated key's characteristics divided appropriately
 	//into hardware-enforced and software-enforced lists
 	//(except APPLICATION_ID and APPLICATION_DATA)
@@ -253,6 +261,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 			(key_blob.key_material_size % BLOCK_SIZE);
 	}
 
+	EMSG("%s %d", __func__, __LINE__);
 	key_material = TEE_Malloc(key_blob.key_material_size,
 						TEE_MALLOC_FILL_ZERO);
 	if (!key_material) {
@@ -260,6 +269,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		goto exit;
 	}
+	EMSG("%s %d", __func__, __LINE__);
 	res = TA_generate_key(key_algorithm, key_size, key_material, key_digest,
 			key_rsa_public_exponent);
 	if (res != KM_ERROR_OK) {
@@ -268,8 +278,10 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	}
 	//TODO add bind keys to operating system and patch level version
 
+	EMSG("%s %d", __func__, __LINE__);
 	TA_serialize_param_set(key_material + key_buffer_size, &params_t);
 
+	EMSG("%s %d", __func__, __LINE__);
 	res = TA_encrypt(key_material, key_blob.key_material_size);
 	if (res != KM_ERROR_OK) {
 		EMSG("Failed to encrypt key blob, res=%x", res);
@@ -277,7 +289,9 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	}
 	key_blob.key_material = key_material;
 
+	EMSG("%s %d", __func__, __LINE__);
 	out += TA_serialize_key_blob(out, &key_blob);
+	EMSG("%s %d", __func__, __LINE__);
 	out += TA_serialize_characteristics(out, &characts);
 exit:
 	if (key_material)
@@ -286,6 +300,7 @@ exit:
 	TA_free_params(&characts.hw_enforced);
 	TA_free_params(&params_t);
 
+	EMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 
