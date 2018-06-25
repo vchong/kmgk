@@ -27,7 +27,7 @@
 #include "common.h"
 
 #undef LOG_TAG
-#define LOG_TAG "OpteeKeymaster"
+#define LOG_TAG "OpteeKeymaster_ipc"
 
 static TEEC_Context ctx;
 static TEEC_Session sess;

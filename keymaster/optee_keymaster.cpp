@@ -24,7 +24,7 @@
 #include "optee_keymaster_ipc.h"
 
 #undef LOG_TAG
-#define LOG_TAG "OpteeKeymaster"
+#define LOG_TAG "OpteeKeymaster_cpp"
 
 namespace android {
 namespace hardware {
