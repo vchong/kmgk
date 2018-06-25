@@ -360,6 +360,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		attributes = attributes_rsa;
 		attr_count = KM_ATTR_COUNT_RSA;
 		type = TEE_TYPE_RSA_KEYPAIR;
+		EMSG("%s %d", __func__, __LINE__);
 		attrs_in = TEE_Malloc(sizeof(TEE_Attribute),
 							TEE_MALLOC_FILL_ZERO);
 		if (!attrs_in) {
@@ -368,6 +369,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			goto gk_out;
 		}
 		attrs_in_count = 1;
+		EMSG("%s %d", __func__, __LINE__);
 		buf_pe = TEE_Malloc(sizeof(rsa_public_exponent),
 							TEE_MALLOC_FILL_ZERO);
 		if (!buf_pe) {
@@ -376,11 +378,14 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			goto gk_out;
 		}
 		be_pe = TEE_U64_TO_BIG_ENDIAN(rsa_public_exponent);
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_MemMove(buf_pe, &be_pe, sizeof(rsa_public_exponent));
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_InitRefAttribute(attrs_in,
 					TEE_ATTR_RSA_PUBLIC_EXPONENT,
 					(void *) buf_pe,
 					sizeof(rsa_public_exponent));
+		EMSG("%s %d", __func__, __LINE__);
 		break;
 	case KM_ALGORITHM_EC:
 		attributes = attributes_ec;
@@ -407,11 +412,13 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 	default:
 		return KM_ERROR_UNSUPPORTED_ALGORITHM;
 	}
+	EMSG("%s %d", __func__, __LINE__);
 	res = TEE_AllocateTransientObject(type, key_size, &obj_h);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate transient object, res=%x", res);
 		goto gk_out;
 	}
+	EMSG("%s %d", __func__, __LINE__);
 	res = TEE_GenerateKey(obj_h, key_size, attrs_in, attrs_in_count);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to generate key via TEE_GenerateKey, res = %x", res);
@@ -421,29 +428,36 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		goto gk_out;
 	}
 
+	EMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(key_material, &type, sizeof(type));
 	padding += sizeof(type);
+	EMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(key_material + padding, &key_size, sizeof(key_size));
 	padding += sizeof(key_size);
 	for (uint32_t i = 0; i < attr_count; i++) {
 		attr_size = KM_MAX_ATTR_SIZE;
+		EMSG("%s %d %u", __func__, __LINE__, i);
 		TEE_MemMove(key_material + padding, attributes + i,
 						sizeof(attributes[i]));
 		padding += sizeof(attributes[i]);
 		if (is_attr_value(attributes[i])) {
 			/* value */
+			EMSG("%s %d %u", __func__, __LINE__, i);
 			res = TEE_GetObjectValueAttribute(obj_h,
 						attributes[i], &a, &b);
 			if (res != TEE_SUCCESS) {
 				EMSG("Failed to get value attribute, res = %x", res);
 				break;
 			}
+			EMSG("%s %d %u", __func__, __LINE__, i);
 			TEE_MemMove(key_material + padding, &a, sizeof(a));
 			padding += sizeof(a);
+			EMSG("%s %d %u", __func__, __LINE__, i);
 			TEE_MemMove(key_material + padding, &b, sizeof(b));
 			padding += sizeof(b);
 		} else {
 			/* buffer */
+			EMSG("%s %d %u", __func__, __LINE__, i);
 			res = TEE_GetObjectBufferAttribute(obj_h,
 					attributes[i], buffer, &attr_size);
 			if (res != TEE_SUCCESS) {
@@ -451,9 +465,11 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 								attributes[i], res);
 				break;
 			}
+			EMSG("%s %d %u", __func__, __LINE__, i);
 			TEE_MemMove(key_material + padding,
 					&attr_size, sizeof(attr_size));
 			padding += sizeof(attr_size);
+			EMSG("%s %d %u", __func__, __LINE__, i);
 			TEE_MemMove(key_material + padding, buffer, attr_size);
 			padding += attr_size;
 		}
