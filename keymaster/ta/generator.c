@@ -419,6 +419,8 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		goto gk_out;
 	}
 	EMSG("%s %d", __func__, __LINE__);
+	EMSG("key_size = %u, sizeof(attrs_in) = %zu, attrs_in_count = %u",
+			key_size, sizeof(attrs_in), attrs_in_count);
 	res = TEE_GenerateKey(obj_h, key_size, attrs_in, attrs_in_count);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to generate key via TEE_GenerateKey, res = %x", res);
