@@ -1337,36 +1337,51 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx __unused,
 	switch(cmd_id) {
 	//Keymaster commands:
 	case KM_ADD_RNG_ENTROPY:
+		EMSG("%s KM_ADD_RNG_ENTROPY", __func__);
 		return TA_addRngEntropy(params);
 	case KM_GENERATE_KEY:
+		EMSG("%s KM_GENERATE_KEY", __func__);
 		return TA_generateKey(params);
 	case KM_GET_KEY_CHARACTERISTICS:
+		EMSG("%s KM_GET_KEY_CHARACTERISTICS", __func__);
 		return TA_getKeyCharacteristics(params);
 	case KM_IMPORT_KEY:
+		EMSG("%s KM_IMPORT_KEY", __func__);
 		return TA_importKey(params);
 	case KM_EXPORT_KEY:
+		EMSG("%s KM_EXPORT_KEY", __func__);
 		return TA_exportKey(params);
 	case KM_ATTEST_KEY:
+		EMSG("%s KM_ATTEST_KEY", __func__);
 		return TA_attestKey(params);
 	case KM_UPGRADE_KEY:
+		EMSG("%s KM_UPGRADE_KEY", __func__);
 		return TA_upgradeKey(params);
 	case KM_DELETE_KEY:
+		EMSG("%s KM_DELETE_KEY", __func__);
 		return TA_deleteKey(params);
 	case KM_DELETE_ALL_KEYS:
+		EMSG("%s KM_DELETE_ALL_KEYS", __func__);
 		return TA_deleteAllKeys(params);
 	case KM_DESTROY_ATT_IDS:
+		EMSG("%s KM_DESTROY_ATT_IDS", __func__);
 		return TA_destroyAttestationIds(params);
 	case KM_BEGIN:
+		EMSG("%s KM_BEGIN", __func__);
 		return TA_begin(params);
 	case KM_UPDATE:
+		EMSG("%s KM_UPDATE", __func__);
 		return TA_update(params);
 	case KM_FINISH:
+		EMSG("%s KM_FINISH", __func__);
 		return TA_finish(params);
 	case KM_ABORT:
+		EMSG("%s KM_ABORT", __func__);
 		return TA_abort(params);
 
 	//Gatekeeper commands:
 	case KM_GET_AUTHTOKEN_KEY:
+		EMSG("%s KM_GET_AUTHTOKEN_KEY", __func__);
 		return TA_GetAuthTokenKey(params);
 
 	default:
