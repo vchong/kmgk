@@ -243,7 +243,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (key_algorithm == KM_ALGORITHM_EC) {
 		TA_add_ec_curve(&params_t, key_size);
 	}
-	EMSG("%s %d", __func__, __LINE__);
+	EMSG("%s %d key_rsa_public_exponent=%lu", __func__, __LINE__, key_rsa_public_exponent);
 	//Newly-generated key's characteristics divided appropriately
 	//into hardware-enforced and software-enforced lists
 	//(except APPLICATION_ID and APPLICATION_DATA)
