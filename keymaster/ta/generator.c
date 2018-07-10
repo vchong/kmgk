@@ -711,7 +711,14 @@ keymaster_error_t TA_create_operation(TEE_OperationHandle *operation,
 				algo = TEE_ALG_RSASSA_PKCS1_V1_5_SHA512;
 				break;
 			case KM_DIGEST_NONE:
-				algo = TEE_ALG_RSASSA_PKCS1_V1_5;
+				/* if PaddingMode::RSA_PKCS1_1_5_SIGN and
+				 * Digest::NONE, then use raw RSA signature
+				 * (see https://source.android.com/security/keystore/implementer-ref#begin) */
+				algo = TEE_ALG_RSA_NOPAD;
+				if (purpose == KM_PURPOSE_SIGN)
+					mode = TEE_MODE_DECRYPT;
+				else if (purpose == KM_PURPOSE_VERIFY)
+					mode = TEE_MODE_ENCRYPT;
 				break;
 			default:
 				EMSG("Unsupported by RSA PKCS digest");

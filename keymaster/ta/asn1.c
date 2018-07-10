@@ -808,7 +808,7 @@ keymaster_error_t TA_decode_ec_sign(const TEE_TASessionHandle sessionSTA,
 				params, NULL);
 	if (res != TEE_SUCCESS) {
 		EMSG("Invoke command for ASN.1 parser (EC sign) failed, res=%x", res);
-		return res;
+		return KM_ERROR_VERIFICATION_FAILED;
 	}
 	if (params[2].memref.size == 0) {
 		EMSG("ASN.1 parser (EC sign) output is empty");

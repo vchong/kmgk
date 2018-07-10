@@ -43,4 +43,7 @@ bool TA_check_pkcs7_pad(keymaster_blob_t *output);
 keymaster_error_t TA_do_rsa_pad(uint8_t **input, uint32_t *input_l,
 				const uint32_t key_size);
 
+keymaster_error_t TA_do_rsa_pkcs_v1_5_rawpad(uint8_t **input, uint32_t *input_l,
+					     const uint32_t key_size);
+
 #endif/* ANDROID_OPTEE_PADDINGS_H */
