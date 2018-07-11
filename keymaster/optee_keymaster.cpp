@@ -270,6 +270,13 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     char value[PROPERTY_VALUE_MAX] = {0,};
     char *str = value;
 
+    /**
+     * re: system/keymaster/keymaster_configuration.cpp
+     * uint32_t GetOsVersion(const char* version_str)
+     * return (major * 100 + minor) * 100 + subminor;
+     * = major * 10000 + minor * 100 + subminor
+     * = same here
+     */
     ALOGD("%s %d\n", __func__, __LINE__);
     if (property_get("ro.build.version.release", value, "") <= 0) {
         ALOGE("Error get property ro.build.version.release");
@@ -277,6 +284,18 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
         goto exit;
     }
     *in = (uint32_t) std::atoi(str) * 10000;
+
+    /**
+     * master branch returns an uppercase alphabet instead of a proper
+     * version string, so convert it corresponding major number
+     * minor and subminor ignored
+     */
+    if (*value > 70 && *value < 91) {
+        ALOGD("Convert %s to corresponding version number\n", value);
+        *in = (uint32_t) (*value - 71) * 10000;
+        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in);
+        goto exit;
+    }
 
     if ((str = std::strchr(str, '.')) != NULL) {
         *in += (uint32_t) std::atoi(str + 1) * 100;
