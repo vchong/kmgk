@@ -284,6 +284,9 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
         goto exit;
     }
     *in = (uint32_t) std::atoi(str) * 10000;
+    ALOGD("ro.build.version.release value = %s %u\n", value, *value); //8.1.0 or Q
+    ALOGD("ro.build.version.release str = %s\n", str); //8.1.0 or Q
+    ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80000 or 0
 
     /**
      * master branch returns an uppercase alphabet instead of a proper
@@ -299,17 +302,28 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
 
     if ((str = std::strchr(str, '.')) != NULL) {
         *in += (uint32_t) std::atoi(str + 1) * 100;
-    } else {
+        ALOGD("ro.build.version.release str = %s\n", str); //.1.0
+        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
+    } else {													//or
         *in = 0xFFFFFFFF;
+        ALOGD("ro.build.version.release str = %s\n", str);
+        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //4294967295 = 0xFFFFFFFF
         goto exit;
     }
 
     if ((str = std::strchr(str + 1, '.')) != NULL) {
         *in += (uint32_t) std::atoi(str + 1);
-    } else {
+        ALOGD("ro.build.version.release str = %s\n", str); //.0
+        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
+    } else {													//or
         *in = 0xFFFFFFFF;
+        ALOGD("ro.build.version.release str = %s\n", str); //(null)
+        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in);
     }
 
+    ALOGD("ro.build.version.release value = %s\n", value); //8.1.0
+    ALOGD("ro.build.version.release str = %s\n", str); //.0
+    ALOGD("*in = %u\n sizeof(*in) = %zu\n", *in, sizeof(*in)); //80100 4
 exit:
     return sizeof(*in);
 }
