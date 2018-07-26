@@ -39,6 +39,7 @@ TEE_Result TA_CreateEntryPoint(void)
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE);
+	EMSG("%s %d", __func__, __LINE__);
 	TA_reset_operations_table();
 
 	res = TA_create_secret_key();
@@ -73,6 +74,7 @@ exit:
 
 void TA_DestroyEntryPoint(void)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	TA_free_master_key();
 	TEE_CloseTASession(sessionSTA);
 	TEE_CloseTASession(session_rngSTA);
@@ -87,6 +89,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE);
+	EMSG("%s %d", __func__, __LINE__);
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
 
@@ -95,12 +98,14 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 
 void TA_CloseSessionEntryPoint(void *sess_ctx __unused)
 {
+	EMSG("%s %d", __func__, __LINE__);
 }
 
 static uint32_t TA_possibe_size(const uint32_t type, const uint32_t key_size,
 				const keymaster_blob_t input,
 				const uint32_t tag_len)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	switch (type) {
 	case TEE_TYPE_AES:
 		/*
@@ -143,6 +148,7 @@ static keymaster_error_t TA_addRngEntropy(TEE_Param params[TEE_NUM_PARAMS])
 	in_size = (size_t) params[0].memref.size;
 	in_end = in + in_size;
 
+	EMSG("%s %d", __func__, __LINE__);
 	if (in_size == 0)
 		return KM_ERROR_OK;
 	if (IS_OUT_OF_BOUNDS(in, in_end, sizeof(data_length))) {
@@ -324,6 +330,7 @@ static keymaster_error_t TA_getKeyCharacteristics(
 	uint32_t type = 0;
 	bool exportable = false;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -403,6 +410,7 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 	uint32_t curve = UNDEFINED;
 	uint64_t key_rsa_public_exponent = UNDEFINED;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -574,6 +582,7 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	uint32_t key_size = UNDEFINED;
 	uint32_t type = 0;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -674,6 +683,7 @@ static keymaster_error_t TA_attestKey(TEE_Param params[TEE_NUM_PARAMS])
 	TA_wipe_attest_objs();
 #endif
 
+	EMSG("%s %d", __func__, __LINE__);
 	//This call creates keys/certs only once during first TA run
 	res = TA_create_attest_objs(sessionSTA);
 	if (res != TEE_SUCCESS) {
@@ -853,6 +863,7 @@ static keymaster_error_t TA_upgradeKey(TEE_Param params[TEE_NUM_PARAMS])
 	keymaster_key_blob_t upgraded_key = EMPTY_KEY_BLOB;/* OUT */
 	keymaster_error_t res = KM_ERROR_OK;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -878,6 +889,7 @@ out:
 //Deletes the provided key
 static keymaster_error_t TA_deleteKey(TEE_Param params[TEE_NUM_PARAMS])
 {
+	EMSG("%s %d", __func__, __LINE__);
 	(void)&params[0];
 	return KM_ERROR_OK;
 }
@@ -885,6 +897,7 @@ static keymaster_error_t TA_deleteKey(TEE_Param params[TEE_NUM_PARAMS])
 //Deletes all keys
 static keymaster_error_t TA_deleteAllKeys(TEE_Param params[TEE_NUM_PARAMS])
 {
+	EMSG("%s %d", __func__, __LINE__);
 	(void)&params[0];
 	return KM_ERROR_OK;
 }
@@ -892,6 +905,7 @@ static keymaster_error_t TA_deleteAllKeys(TEE_Param params[TEE_NUM_PARAMS])
 //Permanently disable the ID attestation feature.
 static keymaster_error_t TA_destroyAttestationIds(TEE_Param params[TEE_NUM_PARAMS])
 {
+	EMSG("%s %d", __func__, __LINE__);
 	(void)&params[0];
 	/* TODO Delete all keys */
 	return KM_ERROR_OK;
@@ -930,6 +944,7 @@ static keymaster_error_t TA_begin(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_OperationHandle *operation = TEE_HANDLE_NULL;
 	TEE_OperationHandle *digest_op = TEE_HANDLE_NULL;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -1080,6 +1095,7 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_ObjectHandle obj_h = TEE_HANDLE_NULL;
 	bool is_input_ext = false;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -1192,6 +1208,7 @@ static keymaster_error_t TA_finish(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_ObjectHandle obj_h = TEE_HANDLE_NULL;
 	bool is_input_ext = false;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
@@ -1309,6 +1326,7 @@ static keymaster_error_t TA_abort(TEE_Param params[TEE_NUM_PARAMS])
 	keymaster_error_t res=  KM_ERROR_OK;
 	keymaster_operation_handle_t operation_handle = 0;		/* IN */
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 
