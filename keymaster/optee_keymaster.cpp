@@ -300,23 +300,37 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
         goto exit;
     }
 
-    if ((str = std::strchr(str, '.')) != NULL) {
+    /*
+     * do NOT set str = strchr() in if statement below cos it'll mess
+     * with the next str = strchr() in the next if statement if str =
+     * single digit # without minor versions
+     * possible crash
+     */
+    if ((std::strchr(str, '.') != NULL) && (*in < 80000)) {
+        str = std::strchr(str, '.');
         *in += (uint32_t) std::atoi(str + 1) * 100;
         ALOGD("ro.build.version.release str = %s\n", str); //.1.0
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
-    } else {													//or
-        *in = 0xFFFFFFFF;
+    } else if (*in < 80000) {													//or
+        *in = 70000; //0xFFFFFFFF;
         ALOGD("ro.build.version.release str = %s\n", str);
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //4294967295 = 0xFFFFFFFF
         goto exit;
     }
 
-    if ((str = std::strchr(str + 1, '.')) != NULL) {
+    /*
+     * do NOT set str = strchr() in if statement below cos it'll mess
+     * with the next str = strchr() in the next if statement if str =
+     * single digit # without minor versions
+     * possible crash
+     */
+    if ((std::strchr(str + 1, '.') != NULL) && (*in < 80000)) {
+        str = std::strchr(str + 1, '.');
         *in += (uint32_t) std::atoi(str + 1);
         ALOGD("ro.build.version.release str = %s\n", str); //.0
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
-    } else {													//or
-        *in = 0xFFFFFFFF;
+    } else if (*in < 80000) {													//or
+        *in = 70000; //0xFFFFFFFF;
         ALOGD("ro.build.version.release str = %s\n", str); //(null)
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in);
     }
