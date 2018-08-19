@@ -285,7 +285,10 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     }
     *in = (uint32_t) std::atoi(str) * 10000;
     ALOGD("ro.build.version.release value = %s %u\n", value, *value); //8.1.0 or Q
-    ALOGD("ro.build.version.release str = %s\n", str); //8.1.0 or Q
+    if (str)
+        ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //8.1.0 or Q
+    else
+        ALOGD("%s %d str is null\n", __func__, __LINE__);
     ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80000 or 0
 
     /**
@@ -309,11 +312,19 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     if ((std::strchr(str, '.') != NULL) && (*in < 80000)) {
         str = std::strchr(str, '.');
         *in += (uint32_t) std::atoi(str + 1) * 100;
-        ALOGD("ro.build.version.release str = %s\n", str); //.1.0
+        ALOGD("%s %d\n", __func__, __LINE__);
+        if (str)
+            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //.1.0
+        else
+            ALOGD("%s %d str is null\n", __func__, __LINE__);
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
-    } else if (*in < 80000) {													//or
+    } else if (*in < 80000) { //or
         *in = 70000; //0xFFFFFFFF;
-        ALOGD("ro.build.version.release str = %s\n", str);
+        ALOGD("%s %d\n", __func__, __LINE__);
+        if (str)
+            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str);
+        else
+            ALOGD("%s %d str is null\n", __func__, __LINE__);
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //4294967295 = 0xFFFFFFFF
         goto exit;
     }
@@ -327,16 +338,25 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     if ((std::strchr(str + 1, '.') != NULL) && (*in < 80000)) {
         str = std::strchr(str + 1, '.');
         *in += (uint32_t) std::atoi(str + 1);
-        ALOGD("ro.build.version.release str = %s\n", str); //.0
+        if (str)
+            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //.0
+        else
+            ALOGD("%s %d str is null\n", __func__, __LINE__);
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
-    } else if (*in < 80000) {													//or
+    } else if (*in < 80000) { //or
         *in = 70000; //0xFFFFFFFF;
-        ALOGD("ro.build.version.release str = %s\n", str); //(null)
+        if (str)
+            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //(null)
+        else
+            ALOGD("%s %d str is null\n", __func__, __LINE__);
         ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in);
     }
 
     ALOGD("ro.build.version.release value = %s\n", value); //8.1.0
-    ALOGD("ro.build.version.release str = %s\n", str); //.0
+    if (str)
+        ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //.0
+    else
+        ALOGD("%s %d str is null\n", __func__, __LINE__);
     ALOGD("*in = %u\n sizeof(*in) = %zu\n", *in, sizeof(*in)); //80100 4
 exit:
     return sizeof(*in);
