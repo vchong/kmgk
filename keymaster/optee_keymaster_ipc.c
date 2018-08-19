@@ -19,7 +19,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <cutils/log.h>
+/*
+ * [ 22% 2/9] target  C: android.hardware.keymaster@3.0-service.optee <= device/linaro/kmgk/keymaster/optee_keymaster_ipc.c
+ * In file included from device/linaro/kmgk/keymaster/optee_keymaster_ipc.c:22:
+ * system/core/libcutils/include_vndk/cutils/log.h:38:2: warning: "Deprecated: don't include cutils/log.h, use either android/log.h or log/log.h" [-W#warnings]
+ * #warning "Deprecated: don't include cutils/log.h, use either android/log.h or log/log.h"
+ * ^
+ * 1 warning generated.
+ */
+#include <log/log.h>
 #include <tee_client_api.h>
 #include <hardware/keymaster2.h>
 
