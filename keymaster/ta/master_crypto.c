@@ -31,7 +31,9 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 	uint32_t readSize = 0;
 	TEE_ObjectHandle object = TEE_HANDLE_NULL;
 
+	EMSG("%s %d", __func__, __LINE__);
 	if (masterKey != TEE_HANDLE_NULL) {
+		EMSG("%s %d", __func__, __LINE__);
 		*secretKey = masterKey;
 		return TEE_SUCCESS;
 	}
@@ -41,6 +43,7 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 			TEE_DATA_FLAG_ACCESS_READ, &object);
 
 	if (res == TEE_SUCCESS) {
+		EMSG("%s %d", __func__, __LINE__);
 		//Key size is fixed
 		res = TEE_ReadObjectData(object, keyData, sizeof(keyData), &readSize);
 		if (res != TEE_SUCCESS || readSize != KEY_LENGTH) {
@@ -48,6 +51,7 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 			goto close;
 		}
 
+		EMSG("%s %d", __func__, __LINE__);
 		//IV size is fixed
 		res = TEE_ReadObjectData(object, iv, sizeof(iv), &readSize);
 		if (res != TEE_SUCCESS || readSize != KEY_LENGTH) {
@@ -55,9 +59,11 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 			goto close;
 		}
 
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_InitRefAttribute(&attrs[0], TEE_ATTR_SECRET_VALUE,
 				keyData, sizeof(keyData));
 
+		EMSG("%s %d", __func__, __LINE__);
 		res = TEE_AllocateTransientObject(TEE_TYPE_AES, KEY_SIZE, &masterKey);
 		if (res == TEE_SUCCESS) {
 			res = TEE_PopulateTransientObject(masterKey, attrs,
@@ -70,6 +76,7 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 		}
 
 close:
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_CloseObject(object);
 
 	} else {
@@ -78,9 +85,11 @@ close:
 	}
 
 	if (res == TEE_SUCCESS) {
+		EMSG("%s %d", __func__, __LINE__);
 		*secretKey = masterKey;
 	}
 
+	EMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 
@@ -146,6 +155,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_Result res;
 	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
 
+	EMSG("%s %d", __func__, __LINE__);
 	res = TA_open_secret_key(&secretKey);
 	if (res != KM_ERROR_OK) {
 		EMSG("Failed to read secret key");
@@ -165,6 +175,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 	TEE_GetObjectInfo1(secretKey, &info);
 
+	EMSG("%s %d", __func__, __LINE__);
 	res = TEE_AllocateOperation(&op, TEE_ALG_AES_CBC_NOPAD, mode, info.maxKeySize);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate AES operation, res=%x", res);
@@ -178,28 +189,39 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 		goto free_op;
 	}
 	TEE_CipherInit(op, iv, sizeof(iv));
-	if (res == TEE_SUCCESS && size > 0)
+	if (res == TEE_SUCCESS && size > 0) {
+		EMSG("%s %d", __func__, __LINE__);
 		res = TEE_CipherDoFinal(op, data, size, outbuf, &outbuf_size);
+	}
 	if (res != TEE_SUCCESS)
 		EMSG("Error TEE_CipherDoFinal res=%x", res);
-	else
+	else {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_MemMove(data, outbuf, size);
+	}
 free_op:
-	if (op != TEE_HANDLE_NULL)
+	if (op != TEE_HANDLE_NULL) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_FreeOperation(op);
+	}
 exit:
-	if (outbuf != NULL)
+	if (outbuf != NULL) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_Free(outbuf);
+	}
+	EMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 
 TEE_Result TA_encrypt(uint8_t *data, const size_t size)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	return TA_execute(data, size, TEE_MODE_ENCRYPT);
 }
 
 TEE_Result TA_decrypt(uint8_t *data, const size_t size)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	return TA_execute(data, size, TEE_MODE_DECRYPT);
 }
 

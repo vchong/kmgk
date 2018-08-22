@@ -543,6 +543,7 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	keymaster_algorithm_t algorithm;
 	keymaster_error_t res = KM_ERROR_OK;
 
+	EMSG("%s %d", __func__, __LINE__);
 	if (!key_material) {
 		EMSG("Failed to allocate memory for key_material");
 		return KM_ERROR_MEMORY_ALLOCATION_FAILED;
@@ -582,26 +583,34 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	}
 	TEE_MemMove(key_size, key_material + padding, sizeof(*key_size));
 	padding += sizeof(*key_size);
+	EMSG("%s %d attrs_count = %u padding = %u", __func__, __LINE__, attrs_count, padding);
 	for (uint32_t i = 0; i < attrs_count; i++) {
+		EMSG("%s %d i = %u padding = %u sizeof(tag) = %zu", __func__, __LINE__, i, padding, sizeof(tag));
 		TEE_MemMove(&tag, key_material + padding, sizeof(tag));
 		padding += sizeof(tag);
+		EMSG("%s %d i = %u padding = %u sizeof(tag) = %zu", __func__, __LINE__, i, padding, sizeof(tag));
 		if (is_attr_value(tag)) {
+			EMSG("%s %d", __func__, __LINE__);
 			/* value */
 			TEE_MemMove(&a, key_material + padding, sizeof(a));
 			padding += sizeof(a);
+			EMSG("%s %d i = %u padding = %u sizeof(a) = %zu", __func__, __LINE__, i, padding, sizeof(a));
 			TEE_MemMove(&b, key_material + padding, sizeof(b));
 			padding += sizeof(b);
+			EMSG("%s %d i = %u padding = %u sizeof(b) = %zu", __func__, __LINE__, i, padding, sizeof(b));
 			TEE_InitValueAttribute(attrs + i, tag, a, b);
 		} else {
+			EMSG("%s %d", __func__, __LINE__);
 			/* buffer */
 			TEE_MemMove(&attr_size, key_material + padding,
 							sizeof(attr_size));
 			padding += sizeof(attr_size);
+			EMSG("%s %d i = %u padding = %u sizeof(attr_size) = %zu", __func__, __LINE__, i, padding, sizeof(attr_size));
 			/* will be freed when parameters array is destroyed */
 			buf = TEE_Malloc(attr_size, TEE_MALLOC_FILL_ZERO);
 			if (!buf) {
 				res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
-				EMSG("Failed to allocate memory for attribute");
+				EMSG("Failed to allocate memory for attribute i = %u", i);
 				/*
 				 * If error occurs, attrs_count should be equal i,
 				 * because free_attrs will try to free memory for elements,
@@ -612,6 +621,7 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 			}
 			TEE_MemMove(buf, key_material + padding, attr_size);
 			padding += attr_size;
+			EMSG("%s %d i = %u padding = %u attr_size = %u", __func__, __LINE__, i, padding, attr_size);
 			TEE_InitRefAttribute(attrs + i, tag, buf, attr_size);
 		}
 	}

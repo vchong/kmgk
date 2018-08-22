@@ -247,6 +247,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 		goto exit;
 	}
 	if (key_algorithm == KM_ALGORITHM_EC) {
+		EMSG("%s %d key_algorithm == KM_ALGORITHM_EC", __func__, __LINE__);
 		TA_add_ec_curve(&params_t, key_size);
 	}
 	EMSG("%s %d key_algorithm=%d key_rsa_public_exponent=%lu", __func__, __LINE__, key_algorithm, key_rsa_public_exponent);
@@ -588,17 +589,25 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	out = (uint8_t *) params[1].memref.buffer;
 
 	in += TA_deserialize_key_format(in, in_end, &export_format, &res);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		EMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	in += TA_deserialize_key_blob(in, in_end, &key_to_export, &res);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		EMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	in += TA_deserialize_blob(in, in_end, &client_id, true, &res, false);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		EMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	in += TA_deserialize_blob(in, in_end, &app_data, true, &res, false);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		EMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 
 	//Keymaster supports export of public keys only in X.509 format
 	if (export_format != KM_KEY_FORMAT_X509) {
@@ -615,11 +624,15 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	}
 	res = TA_restore_key(key_material, &key_to_export, &key_size, &type,
 						 &obj_h, &params_t);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		EMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	res = TA_check_permission(&params_t, client_id, app_data, &exportable);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		EMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	if (!exportable && type != TEE_TYPE_RSA_KEYPAIR
 			&& type != TEE_TYPE_ECDSA_KEYPAIR) {
 		res = KM_ERROR_UNSUPPORTED_KEY_FORMAT;
@@ -631,20 +644,33 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 		goto out;
 	out += TA_serialize_blob(out, &export_data);
 out:
-	if (obj_h != TEE_HANDLE_NULL)
+	if (obj_h != TEE_HANDLE_NULL) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_FreeTransientObject(obj_h);
-	if (client_id.data)
+	}
+	if (client_id.data) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_Free(client_id.data);
-	if (app_data.data)
+	}
+	if (app_data.data) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_Free(app_data.data);
-	if (key_to_export.key_material)
+	}
+	if (key_to_export.key_material) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_Free(key_to_export.key_material);
-	if (key_material)
+	}
+	if (key_material) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_Free(key_material);
-	if (export_data.data)
+	}
+	if (export_data.data) {
+		EMSG("%s %d", __func__, __LINE__);
 		TEE_Free(export_data.data);
+	}
 	TA_free_params(&params_t);
 
+	EMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 

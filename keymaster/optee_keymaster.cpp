@@ -816,8 +816,10 @@ Return<ErrorCode>  OpteeKeymasterDevice::deleteKey(const hidl_vec<uint8_t> &keyB
      * blob is unusable after the call. This is equally true if the key blob was
      * unusable before.
      */
-    if (rc == ErrorCode::INVALID_KEY_BLOB)
+    if (rc == ErrorCode::INVALID_KEY_BLOB) {
+        ALOGD("%s %d ErrorCode INVALID_KEY_BLOB returned as OK!\n", __func__, __LINE__);
         rc = ErrorCode::OK;
+    }
 
     if (rc != ErrorCode::OK)
         ALOGE("Attest key failed with code %d [%x]", rc, rc);
