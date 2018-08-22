@@ -153,11 +153,11 @@ int TA_deserialize_key_blob(const uint8_t *in, const uint8_t *end,
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
 		return SIZE_LENGTH;
 	}
-	/* Freed when deserialized key blob is destoyrd by caller */
+	/* Freed when deserialized key blob is destroyed by caller */
 	key_material = TEE_Malloc(key_blob->key_material_size,
 							TEE_MALLOC_FILL_ZERO);
 	if (!key_material) {
-		EMSG("Fialed to allocate memory for key_material");
+		EMSG("Failed to allocate memory for key_material");
 		*res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		return 0;
 	}
