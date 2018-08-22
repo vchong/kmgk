@@ -179,12 +179,14 @@ keymaster_error_t TA_encode_key(const TEE_TASessionHandle sessionSTA,
 						TEE_PARAM_TYPE_MEMREF_OUTPUT);
 	TEE_Param params[TEE_NUM_PARAMS];
 
+	EMSG("%s %d", __func__, __LINE__);
 	if (!attr1 || !attr2) {
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		EMSG("Failed to allocate memory for local buffers");
 		goto out;
 	}
 	if (type == TEE_TYPE_RSA_KEYPAIR) {
+		EMSG("%s %d", __func__, __LINE__);
 		res = TEE_GetObjectBufferAttribute(*obj_h,
 					TEE_ATTR_RSA_MODULUS, attr1, &attr1_l);
 		if (res != TEE_SUCCESS) {
@@ -199,6 +201,7 @@ keymaster_error_t TA_encode_key(const TEE_TASessionHandle sessionSTA,
 			goto out;
 		}
 	} else {
+		EMSG("%s %d", __func__, __LINE__);
 		res = TEE_GetObjectBufferAttribute(*obj_h,
 				TEE_ATTR_ECC_PUBLIC_VALUE_X, attr1, &attr1_l);
 		if (res != TEE_SUCCESS) {
@@ -239,6 +242,7 @@ keymaster_error_t TA_encode_key(const TEE_TASessionHandle sessionSTA,
 		     res);
 		goto out;
 	}
+	EMSG("%s %d", __func__, __LINE__);
 	if (params[3].memref.size == 0) {
 		EMSG("x.509 ASN.1 encoder output is empty");
 		res = KM_ERROR_UNSUPPORTED_KEY_ENCRYPTION_ALGORITHM;
@@ -256,6 +260,7 @@ keymaster_error_t TA_encode_key(const TEE_TASessionHandle sessionSTA,
 	TEE_MemMove(export_data->data, params[3].memref.buffer,
 					export_data->data_length);
 
+	EMSG("%s %d", __func__, __LINE__);
 out:
 	if (attr1)
 		TEE_Free(attr1);
@@ -264,6 +269,7 @@ out:
 	if (output)
 		TEE_Free(output);
 
+	EMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 
