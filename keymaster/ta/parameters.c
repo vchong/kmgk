@@ -22,6 +22,7 @@ const size_t kMaxGcmTagLength = 16 * 8;
 
 void TA_free_params(keymaster_key_param_set_t *params)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	if (!params->params)
 		return;
 	for (size_t i = 0; i < params->length; i++) {
@@ -36,6 +37,7 @@ void TA_free_params(keymaster_key_param_set_t *params)
 
 void TA_free_cert_chain(keymaster_cert_chain_t *cert_chain)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	if (!cert_chain->entries) {
 		return;
 	}
@@ -53,6 +55,7 @@ void TA_add_to_params(keymaster_key_param_set_t *params,
 				const uint32_t curve)
 {
 	bool was_added = false;
+	EMSG("%s %d", __func__, __LINE__);
 
 	if (key_size != UNDEFINED) {
 		for (size_t i = 0; i < params->length; i++) {
@@ -109,6 +112,7 @@ void TA_add_to_params(keymaster_key_param_set_t *params,
 
 uint32_t get_digest_size(const keymaster_digest_t *digest)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	switch (*digest) {
 	case KM_DIGEST_MD5:
 		return KM_DIGEST_MD5_SIZE;
@@ -130,6 +134,7 @@ uint32_t get_digest_size(const keymaster_digest_t *digest)
 void TA_push_param(keymaster_key_param_set_t *enforced,
 			const keymaster_key_param_t *param)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	enforced->params[enforced->length] = *param;
 	enforced->length++;
 }
@@ -148,6 +153,7 @@ keymaster_error_t TA_parse_params(const keymaster_key_param_set_t params_t,
 	keymaster_ec_curve_t ec_curve = KM_EC_CURVE_UNKNOWN;
 	*key_size = UNDEFINED; /*set default value*/
 
+	EMSG("%s %d", __func__, __LINE__);
 	for (size_t i = 0; i < params_t.length; i++) {
 		switch ((params_t.params + i)->tag) {
 		case KM_TAG_ALGORITHM:
@@ -269,6 +275,7 @@ keymaster_error_t TA_fill_characteristics(
 			const keymaster_key_param_set_t *params,
 			uint32_t *size)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	/* Freed before characteristics is destoyed by caller */
 	characteristics->hw_enforced.params = TEE_Malloc(
 					MAX_ENFORCED_PARAMS_COUNT *
@@ -377,6 +384,7 @@ keymaster_error_t TA_fill_characteristics(
 
 inline uint32_t TA_blob_size(const keymaster_blob_t *blob)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	return BLOB_SIZE(blob);
 }
 
@@ -384,6 +392,7 @@ uint32_t TA_characteristics_size(
 			const keymaster_key_characteristics_t *characteristics)
 {
 	uint32_t size = 0;
+	EMSG("%s %d", __func__, __LINE__);
 
 	size += SIZE_LENGTH;
 	for (size_t i = 0; i < characteristics->hw_enforced.length; i++) {
@@ -416,6 +425,7 @@ uint32_t TA_param_set_size(
 		const keymaster_key_param_set_t *params)
 {
 	uint32_t size = 0;
+	EMSG("%s %d", __func__, __LINE__);
 
 	size += SIZE_LENGTH;
 	for (size_t i = 0; i < params->length; i++) {
@@ -435,6 +445,7 @@ uint32_t TA_cert_chain_size(
 		const keymaster_cert_chain_t *cert_chain)
 {
 	uint32_t size = 0;
+	EMSG("%s %d", __func__, __LINE__);
 
 	size += SIZE_LENGTH;
 	for (size_t i = 0; i < cert_chain->entry_count; i++) {
@@ -448,6 +459,7 @@ void TA_add_origin(keymaster_key_param_set_t *params_t,
 		const keymaster_key_origin_t origin, const bool replace_origin)
 {
 	bool origin_added = false;
+	EMSG("%s %d", __func__, __LINE__);
 
 	for (size_t i = 0; i < params_t->length; i++) {
 		if (params_t->params[i].tag == KM_TAG_ORIGIN) {
@@ -472,6 +484,7 @@ void TA_add_creation_datetime(keymaster_key_param_set_t *params_t, bool replace)
 	bool datetime_added = false;
 	TEE_Time time;
 	TEE_GetSystemTime(&time);
+	EMSG("%s %d", __func__, __LINE__);
 
 	/*Replace if present*/
 	for (size_t i = 0; i < params_t->length; i++) {
@@ -501,6 +514,7 @@ void TA_add_os_version_patchlevel(keymaster_key_param_set_t *params_t,
 				  uint32_t os_patchlevel)
 {
 	size_t i;
+	EMSG("%s %d", __func__, __LINE__);
 
 	for (i = 0; i < params_t->length; i++) {
 		if (params_t->params[i].tag == KM_TAG_OS_VERSION) {
@@ -533,6 +547,7 @@ void TA_add_ec_curve(keymaster_key_param_set_t *params_t, uint32_t key_size)
 {
 	bool tag_added = false;
 	keymaster_ec_curve_t curve = TA_size_to_ECcurve(key_size);
+	EMSG("%s %d", __func__, __LINE__);
 
 	for (size_t i = 0; i < params_t->length; i++) {
 		if (params_t->params[i].tag == KM_TAG_EC_CURVE)
@@ -550,6 +565,7 @@ void TA_add_ec_curve(keymaster_key_param_set_t *params_t, uint32_t key_size)
 bool cmpBlobParam(const keymaster_blob_t blob,
 		const keymaster_key_param_t param)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	return blob.data_length != param.key_param.blob.data_length ||
 		TEE_MemCompare(blob.data, param.key_param.blob.data,
 		blob.data_length);
@@ -593,6 +609,7 @@ keymaster_error_t TA_check_params(keymaster_key_blob_t *key,
 	bool caller_nonce = false;
 	keymaster_error_t res = KM_ERROR_OK;
 
+	EMSG("%s %d", __func__, __LINE__);
 	for (size_t i = 0; i < key_params->length; i++) {
 		switch (key_params->params[i].tag) {
 		case KM_TAG_KEY_SIZE:
@@ -708,6 +725,7 @@ keymaster_error_t TA_check_params(keymaster_key_blob_t *key,
 	}
 
 	for (size_t j = 0; j < in_params->length; j++) {
+		EMSG("%s %d j = %zu in_params->params[j].tag = %d", __func__, __LINE__, j, in_params->params[j].tag);
 		switch (in_params->params[j].tag) {
 		case KM_TAG_APPLICATION_ID:
 			if (cmpBlobParam(client_id,
@@ -1011,6 +1029,7 @@ out_cp:
 
 inline bool is_origination_purpose(const keymaster_purpose_t purpose)
 {
+	EMSG("%s %d", __func__, __LINE__);
 	return purpose == KM_PURPOSE_ENCRYPT || purpose == KM_PURPOSE_SIGN;
 }
 
@@ -1024,9 +1043,11 @@ keymaster_error_t TA_check_permission(const keymaster_key_param_set_t *params,
 	bool client_id_same = false;
 	bool app_data_same = false;
 
+	EMSG("%s %d", __func__, __LINE__);
 	for (size_t i = 0; i < params->length; i++) {
 		if (client_id_checked && app_data_checked && *exportable)
 			break;
+		EMSG("%s %d i = %zu in_params->params[j].tag = %d", __func__, __LINE__, i, params->params[i].tag);
 		switch (params->params[i].tag) {
 		case KM_TAG_APPLICATION_ID:
 			client_id_checked = true;
