@@ -564,6 +564,108 @@ free_attrs:
 	return res;
 }
 
+static keymaster_error_t TA_checkparams(TEE_Param params[TEE_NUM_PARAMS])
+{
+	uint8_t *in = NULL;
+	uint8_t *in_end = NULL;
+	uint8_t *out = NULL;
+	uint8_t *key_material = NULL;
+	uint8_t *secretIV = NULL;
+	uint32_t mac_length = UNDEFINED;
+	uint32_t key_size = 0;
+	uint32_t IVsize = UNDEFINED;
+	uint32_t min_sec = UNDEFINED;
+	uint32_t type = 0;
+	bool do_auth = false;
+	keymaster_purpose_t purpose = UNDEFINED;		/* IN */
+	keymaster_key_blob_t key = EMPTY_KEY_BLOB;		/* IN */
+	keymaster_key_param_set_t in_params = EMPTY_PARAM_SET;	/* IN */
+	keymaster_key_param_set_t out_params = EMPTY_PARAM_SET;	/* OUT */
+	keymaster_operation_handle_t operation_handle = 0;	/* OUT */
+	keymaster_key_param_set_t params_t = EMPTY_PARAM_SET;
+	keymaster_key_param_t *nonce_param = NULL;
+	keymaster_error_t res = KM_ERROR_OK;
+	keymaster_algorithm_t algorithm = UNDEFINED;
+	keymaster_blob_t nonce = EMPTY_BLOB;
+	keymaster_digest_t digest = UNDEFINED;
+	keymaster_block_mode_t mode = UNDEFINED;
+	keymaster_padding_t padding = UNDEFINED;
+	TEE_ObjectHandle obj_h = TEE_HANDLE_NULL;
+	TEE_OperationHandle *operation = TEE_HANDLE_NULL;
+	TEE_OperationHandle *digest_op = TEE_HANDLE_NULL;
+
+	in = (uint8_t *) params[0].memref.buffer;
+	in_end = in + params[0].memref.size;
+	out = (uint8_t *) params[1].memref.buffer;
+
+	/* Freed when operation is aborted (TA_abort_operation) */
+	operation = TEE_Malloc(sizeof(TEE_OperationHandle),
+					TEE_MALLOC_FILL_ZERO);
+	if (!operation) {
+		EMSG("Failed to allocate memory for operation");
+		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
+		goto out;
+	}
+	/* Freed when operation is aborted (TA_abort_operation) */
+	digest_op = TEE_Malloc(sizeof(TEE_OperationHandle),
+					TEE_MALLOC_FILL_ZERO);
+	if (!digest_op) {
+		EMSG("Failed to allocate memory for digest operation");
+		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
+		goto out;
+	}
+	*operation = TEE_HANDLE_NULL;
+	*digest_op = TEE_HANDLE_NULL;
+
+	in += TA_deserialize_purpose(in, in_end, &purpose, &res);
+	if (res != KM_ERROR_OK)
+		goto out;
+	in += TA_deserialize_key_blob(in, in_end, &key, &res);
+	if (res != KM_ERROR_OK)
+		goto out;
+	in += TA_deserialize_param_set(in, in_end, &in_params, true, &res);
+	if (res != KM_ERROR_OK)
+		goto out;
+
+	switch (type) {
+	case TEE_TYPE_AES:
+		algorithm = KM_ALGORITHM_AES;
+		break;
+	case TEE_TYPE_RSA_KEYPAIR:
+		algorithm = KM_ALGORITHM_RSA;
+		break;
+	case TEE_TYPE_ECDSA_KEYPAIR:
+		algorithm = KM_ALGORITHM_EC;
+		break;
+	default:/* HMAC */
+		algorithm = KM_ALGORITHM_HMAC;
+	}
+	res = TA_check_params(&key, &params_t, &in_params,
+				&algorithm, purpose, &digest, &mode,
+				&padding, &mac_length, &nonce,
+				&min_sec, &do_auth);
+
+out:
+	if (obj_h != TEE_HANDLE_NULL)
+		TEE_FreeTransientObject(obj_h);
+	if (key.key_material)
+		TEE_Free(key.key_material);
+	if (res != KM_ERROR_OK) {
+		if (*digest_op != TEE_HANDLE_NULL)
+			TEE_FreeOperation(*digest_op);
+		if (*operation != TEE_HANDLE_NULL)
+			TEE_FreeOperation(*operation);
+		TEE_Free(operation);
+		TEE_Free(digest_op);
+	}
+	if (key_material)
+		TEE_Free(key_material);
+	TA_free_params(&in_params);
+	TA_free_params(&params_t);
+	TA_free_params(&out_params);
+	return res;
+}
+
 //Exports a public key from a Keymaster RSA or EC key pair.
 static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 {
@@ -584,6 +686,10 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	uint32_t type = 0;
 
 	EMSG("%s %d", __func__, __LINE__);
+	res = TA_checkparams(params);
+	if (res != KM_ERROR_OK)
+		goto out;
+
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;
