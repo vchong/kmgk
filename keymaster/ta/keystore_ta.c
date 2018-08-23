@@ -594,6 +594,7 @@ static keymaster_error_t TA_checkparams(TEE_Param params[TEE_NUM_PARAMS])
 	TEE_OperationHandle *operation = TEE_HANDLE_NULL;
 	TEE_OperationHandle *digest_op = TEE_HANDLE_NULL;
 
+	EMSG("%s %d", __func__, __LINE__);
 	in = (uint8_t *) params[0].memref.buffer;
 	in_end = in + params[0].memref.size;
 	out = (uint8_t *) params[1].memref.buffer;

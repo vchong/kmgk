@@ -605,7 +605,8 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 			TEE_MemMove(&attr_size, key_material + padding,
 							sizeof(attr_size));
 			padding += sizeof(attr_size);
-			EMSG("%s %d i = %u padding = %u sizeof(attr_size) = %zu", __func__, __LINE__, i, padding, sizeof(attr_size));
+			EMSG("%s %d i = %u padding = %u sizeof(attr_size) = %zu attr_size = %u",
+					__func__, __LINE__, i, padding, sizeof(attr_size), attr_size);
 			/* will be freed when parameters array is destroyed */
 			buf = TEE_Malloc(attr_size, TEE_MALLOC_FILL_ZERO);
 			if (!buf) {
@@ -621,7 +622,8 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 			}
 			TEE_MemMove(buf, key_material + padding, attr_size);
 			padding += attr_size;
-			EMSG("%s %d i = %u padding = %u attr_size = %u", __func__, __LINE__, i, padding, attr_size);
+			EMSG("%s %d i = %u padding = %u sizeof(attr_size) = %zu attr_size = %u",
+					__func__, __LINE__, i, padding, sizeof(attr_size), attr_size);
 			TEE_InitRefAttribute(attrs + i, tag, buf, attr_size);
 		}
 	}
