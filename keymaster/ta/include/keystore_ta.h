@@ -106,7 +106,6 @@ static uint32_t TA_possibe_size(const uint32_t type,
 				const keymaster_blob_t input,
 				const uint32_t tag_len);
 
-static keymaster_error_t TA_checkparams(TEE_Param params[TEE_NUM_PARAMS]);
 
 static keymaster_error_t TA_addRngEntropy(TEE_Param params[TEE_NUM_PARAMS]);
 
