@@ -623,6 +623,8 @@ Return<void>  OpteeKeymasterDevice::exportKey(KeyFormat exportFormat, const hidl
     resultKeyBlob = kmBlob2hidlVec(kmBlob);
 
 error:
+	ALOGD("%s %d\n", __func__, __LINE__);
+	ALOGE("Export key failed with code %d [%x]", rc, rc);
     //send results off to the client
     _hidl_cb(rc, resultKeyBlob);
 
