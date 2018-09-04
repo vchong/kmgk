@@ -578,10 +578,20 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 		algorithm = KM_ALGORITHM_EC;
 		EMSG("%s %d EC attrs_count = %u algorithm = %d", __func__, __LINE__, attrs_count, algorithm);
 		break;
-	default: /* HMAC */
+	case TEE_TYPE_HMAC_MD5:
+	case TEE_TYPE_HMAC_SHA1:
+	case TEE_TYPE_HMAC_SHA224:
+	case TEE_TYPE_HMAC_SHA256:
+	case TEE_TYPE_HMAC_SHA384:
+	case TEE_TYPE_HMAC_SHA512:
 		attrs_count = KM_ATTR_COUNT_AES_HMAC;
 		algorithm = KM_ALGORITHM_HMAC;
 		EMSG("%s %d HMAC attrs_count = %u algorithm = %d", __func__, __LINE__, attrs_count, algorithm);
+		break;
+	default:
+		EMSG("Invalid type!");
+		res = KM_ERROR_INVALID_KEY_BLOB;
+		goto out_rk;
 	}
 	attrs = TEE_Malloc(attrs_count * sizeof(TEE_Attribute),
 						TEE_MALLOC_FILL_ZERO);

@@ -159,6 +159,29 @@ int TA_deserialize_key_blob(const uint8_t *in, const uint8_t *end,
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
 		return SIZE_LENGTH;
 	}
+
+    /* Done in OpteeKeymasterDevice::exportKey() in optee_keymaster.cpp
+    // in should point to key_material
+    if (!in || key_blob->key_material_size == 0) {
+        EMSG("Invalid key blob");
+        *res = KM_ERROR_INVALID_KEY_BLOB;
+        return 0;
+    }
+    */
+
+    const uint8_t* tmp = in;
+    const uint8_t** buf_ptr = &tmp;
+    const uint8_t* tmp_end = tmp + key_blob->key_material_size;
+
+    if (tmp_end <= *buf_ptr) {
+        EMSG("Invalid key blob");
+        *res = KM_ERROR_INVALID_KEY_BLOB;
+        return 0;
+    }
+
+    uint8_t version = *(*buf_ptr)++;
+    EMSG("current blob version = %u", version);
+
 	/* Freed when deserialized key blob is destroyed by caller */
 	key_material = TEE_Malloc(key_blob->key_material_size,
 							TEE_MALLOC_FILL_ZERO);
