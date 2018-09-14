@@ -654,12 +654,17 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	}
 	res = TEE_AllocateTransientObject(*type, *key_size, obj_h);
 	if (res != TEE_SUCCESS) {
+		if (res == (keymaster_error_t)TEE_ERROR_OUT_OF_MEMORY)
+			res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
+		else if (res == (keymaster_error_t)TEE_ERROR_NOT_SUPPORTED)
+			res = KM_ERROR_UNSUPPORTED_KEY_SIZE;
 		EMSG("Error TEE_AllocateTransientObject res = %x type = %x",
 								 res, *type);
 		goto out_rk;
 	}
 	res = TEE_PopulateTransientObject(*obj_h, attrs, attrs_count);
 	if (res != TEE_SUCCESS) {
+		res = KM_ERROR_INVALID_ARGUMENT;
 		EMSG("Error TEE_PopulateTransientObject res = %x", res);
 		goto out_rk;
 	}
