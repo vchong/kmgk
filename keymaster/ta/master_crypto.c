@@ -18,7 +18,8 @@
 #include "master_crypto.h"
 
 //Master key for encryption/decryption of all CA's keys,
-//and also used as HBK during attestation
+//and also used as HBK (hardware-bound private key) during attestation
+
 static uint8_t objID[] = {0xa7U, 0x62U, 0xcfU, 0x11U};
 static uint8_t iv[KEY_LENGTH];
 
@@ -154,6 +155,9 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_ObjectInfo info;
 	TEE_Result res;
 	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
+	static uint8_t tag[TAG_LENGTH];
+	/* MUST init else error if < TAG_LENGTH */
+	static uint32_t tagLen = TAG_LENGTH;
 
 	EMSG("%s %d", __func__, __LINE__);
 	res = TA_open_secret_key(&secretKey);
@@ -176,7 +180,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_GetObjectInfo1(secretKey, &info);
 
 	EMSG("%s %d", __func__, __LINE__);
-	res = TEE_AllocateOperation(&op, TEE_ALG_AES_CBC_NOPAD, mode, info.maxKeySize);
+	res = TEE_AllocateOperation(&op, TEE_ALG_AES_GCM, mode, info.maxKeySize);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate AES operation, res=%x", res);
 		goto exit;
@@ -188,13 +192,25 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 		EMSG("Failed to set secret key, res=%x", res);
 		goto free_op;
 	}
-	TEE_CipherInit(op, iv, sizeof(iv));
+	TEE_AEInit(op, iv, sizeof(iv), TAG_SIZE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
 		EMSG("%s %d", __func__, __LINE__);
-		res = TEE_CipherDoFinal(op, data, size, outbuf, &outbuf_size);
+		if (mode == TEE_MODE_ENCRYPT) {
+			tagLen = TAG_LENGTH; //reset before encrypt
+			res = TEE_AEEncryptFinal(op, data, size, outbuf, &outbuf_size,
+				(void *)&tag, &tagLen);
+		}
+		else
+			res = TEE_AEDecryptFinal(op, data, size, outbuf, &outbuf_size,
+				(void *)&tag, tagLen);
 	}
+	/*
+	 * Copy outbuf to data even if mac invalid to complete operation
+	 * so that we can TA_check_params properly in TA_begin?
+	 */
+	//if (res != TEE_SUCCESS && res != TEE_ERROR_MAC_INVALID)
 	if (res != TEE_SUCCESS)
-		EMSG("Error TEE_CipherDoFinal res=%x", res);
+		EMSG("Error TEE_AEFinal res=%x", res);
 	else {
 		EMSG("%s %d", __func__, __LINE__);
 		TEE_MemMove(data, outbuf, size);

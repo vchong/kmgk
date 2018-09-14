@@ -1006,6 +1006,11 @@ static keymaster_error_t TA_begin(TEE_Param params[TEE_NUM_PARAMS])
 	key_material = TEE_Malloc(key.key_material_size, TEE_MALLOC_FILL_ZERO);
 	res = TA_restore_key(key_material, &key, &key_size,
 						 &type, &obj_h, &params_t);
+	/*
+	 * if res = KM_ERROR_INVALID_KEY_BLOB, go to TA_check_params
+	 * for more refined error code?
+	 */
+	//if (res != KM_ERROR_OK && res != KM_ERROR_INVALID_KEY_BLOB)
 	if (res != KM_ERROR_OK)
 		goto out;
 	switch (type) {

@@ -555,8 +555,21 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	TEE_MemMove(key_material, key_blob->key_material,
 					key_blob->key_material_size);
 	res = TA_decrypt(key_material, key_blob->key_material_size);
-	if (res != KM_ERROR_OK) {
-		EMSG("Failed to decript key blob");
+	if (res != TEE_SUCCESS) {
+		if (res == (keymaster_error_t)TEE_ERROR_MAC_INVALID) {
+			/*
+			 * if res = KM_ERROR_INVALID_KEY_BLOB, proceed anyway
+			 * for more refined error code?
+			 */
+			res = KM_ERROR_INVALID_KEY_BLOB;
+			EMSG("Decryption probably succeeded but auth failed");
+		}
+		else if (res == (keymaster_error_t)TEE_ERROR_SHORT_BUFFER) {
+			res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
+			EMSG("Output or tag buffer too small for output");
+		}
+		else
+			EMSG("Failed to decript key blob");
 		goto out_rk;
 	}
 	TEE_MemMove(type, key_material, sizeof(*type));
