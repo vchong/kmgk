@@ -194,15 +194,17 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 	TEE_AEInit(op, iv, sizeof(iv), TAG_SIZE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
-		EMSG("%s %d", __func__, __LINE__);
 		if (mode == TEE_MODE_ENCRYPT) {
+			EMSG("%s %d", __func__, __LINE__);
 			tagLen = TAG_LENGTH; //reset before encrypt
 			res = TEE_AEEncryptFinal(op, data, size, outbuf, &outbuf_size,
 				(void *)&tag, &tagLen);
 		}
-		else
+		else {
+			EMSG("%s %d", __func__, __LINE__);
 			res = TEE_AEDecryptFinal(op, data, size, outbuf, &outbuf_size,
 				(void *)&tag, tagLen);
+		}
 	}
 	/*
 	 * Copy outbuf to data even if mac invalid to complete operation

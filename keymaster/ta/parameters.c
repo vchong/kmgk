@@ -692,6 +692,11 @@ keymaster_error_t TA_check_params(keymaster_key_blob_t *key,
 		}
 	}
 
+	for (uint32_t z = 0; z < purpose_count; z++) {
+		EMSG("purpose[%u] = %d", z, purpose[z]);
+	}
+	EMSG("op_purpose = %d", op_purpose);
+
 	if (*algorithm == KM_ALGORITHM_EC &&
 				(op_purpose == KM_PURPOSE_ENCRYPT ||
 				op_purpose == KM_PURPOSE_DECRYPT)) {
