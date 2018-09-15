@@ -234,13 +234,13 @@ exit:
 TEE_Result TA_encrypt(uint8_t *data, const size_t size)
 {
 	EMSG("%s %d", __func__, __LINE__);
-	return TA_execute(data, size, TEE_MODE_ENCRYPT);
+	return TA_execute(data + HEADER_SIZE, size - HEADER_SIZE, TEE_MODE_ENCRYPT);
 }
 
 TEE_Result TA_decrypt(uint8_t *data, const size_t size)
 {
 	EMSG("%s %d", __func__, __LINE__);
-	return TA_execute(data, size, TEE_MODE_DECRYPT);
+	return TA_execute(data + HEADER_SIZE, size - HEADER_SIZE, TEE_MODE_DECRYPT);
 }
 
 void TA_free_master_key(void)

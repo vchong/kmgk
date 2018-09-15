@@ -22,6 +22,8 @@
 #define KEY_LENGTH 16
 #define TAG_SIZE 128U
 #define TAG_LENGTH 16
+#define HEADER_SIZE 128U
+#define HEADER_LENGTH 16
 
 #include <tee_internal_api.h>
 #include <tee_internal_api_extensions.h>
