@@ -187,11 +187,13 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 
 	//Use persistent key objects
+	EMSG("%s %d", __func__, __LINE__);
 	res = TEE_SetOperationKey(op, secretKey);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to set secret key, res=%x", res);
 		goto free_op;
 	}
+	EMSG("%s %d", __func__, __LINE__);
 	TEE_AEInit(op, iv, sizeof(iv), TAG_SIZE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
 		if (mode == TEE_MODE_ENCRYPT) {

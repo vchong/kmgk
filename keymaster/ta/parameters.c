@@ -613,30 +613,38 @@ keymaster_error_t TA_check_params(keymaster_key_blob_t *key,
 	for (size_t i = 0; i < key_params->length; i++) {
 		switch (key_params->params[i].tag) {
 		case KM_TAG_KEY_SIZE:
+			EMSG("KM_TAG_KEY_SIZE");
 			key_size = key_params->params[i].key_param.integer;
 			break;
 		case KM_TAG_ALGORITHM:
+			EMSG("KM_TAG_ALGORITHM");
 			*algorithm = (keymaster_algorithm_t)
 				key_params->params[i].key_param.integer;
 			break;
 		case KM_TAG_APPLICATION_ID:
+			EMSG("KM_TAG_APPLICATION_ID");
 			client_id = key_params->params[i].key_param.blob;
 			break;
 		case KM_TAG_APPLICATION_DATA:
+			EMSG("KM_TAG_APPLICATION_DATA");
 			app_data = key_params->params[i].key_param.blob;
 			break;
 		case KM_TAG_PURPOSE:
+			EMSG("KM_TAG_PURPOSE");
 			purpose[purpose_count] = (keymaster_purpose_t)
 				key_params->params[i].key_param.enumerated;
 			purpose_count++;
 			break;
 		case KM_TAG_MIN_SECONDS_BETWEEN_OPS:
+			EMSG("KM_TAG_MIN_SECONDS_BETWEEN_OPS");
 			*min_sec = key_params->params[i].key_param.integer;
 			break;
 		case KM_TAG_MAX_USES_PER_BOOT:
+			EMSG("KM_TAG_MAX_USES_PER_BOOT");
 			max_uses = key_params->params[i].key_param.integer;
 			break;
 		case KM_TAG_USER_SECURE_ID:
+			EMSG("KM_TAG_USER_SECURE_ID");
 			if (suid_count + 1 > MAX_SUID) {
 				EMSG("To many SUID. Expected max count %u",
 								MAX_SUID);
@@ -647,46 +655,56 @@ keymaster_error_t TA_check_params(keymaster_key_blob_t *key,
 			suid_count++;
 			break;
 		case KM_TAG_CALLER_NONCE:
+			EMSG("KM_TAG_CALLER_NONCE");
 			caller_nonce =
 				key_params->params[i].key_param.boolean;
 			break;
 		case KM_TAG_AUTH_TIMEOUT:
+			EMSG("KM_TAG_AUTH_TIMEOUT");
 			auth_timeout =
 				key_params->params[i].key_param.integer;
 			break;
 		case KM_TAG_USER_AUTH_TYPE:
+			EMSG("KM_TAG_USER_AUTH_TYPE");
 			auth_type = (hw_authenticator_type_t)
 				key_params->params[i].key_param.enumerated;
 			break;
 		case KM_TAG_BLOCK_MODE:
+			EMSG("KM_TAG_BLOCK_MODE");
 			block_mode[block_mode_count] =
 				(keymaster_block_mode_t) key_params->
 					params[i].key_param.integer;
 			block_mode_count++;
 			break;
 		case KM_TAG_DIGEST:
+			EMSG("KM_TAG_DIGEST");
 			digest[digest_count] = (keymaster_digest_t)
 				key_params->params[i].key_param.integer;
 			digest_count++;
 			break;
 		case KM_TAG_PADDING:
+			EMSG("KM_TAG_PADDING");
 			padding[padding_count] = (keymaster_padding_t)
 				key_params->params[i].key_param.integer;
 			padding_count++;
 			break;
 		case KM_TAG_MIN_MAC_LENGTH:
+			EMSG("KM_TAG_MIN_MAC_LENGTH");
 			min_mac_length =
 				key_params->params[i].key_param.integer;
 			break;
 		case KM_TAG_NO_AUTH_REQUIRED:
+			EMSG("KM_TAG_NO_AUTH_REQUIRED");
 			no_auth_req =
 				key_params->params[i].key_param.boolean;
 			break;
 		case KM_TAG_MAC_LENGTH:
+			EMSG("KM_TAG_MAC_LENGTH");
 			*mac_length =
 				in_params->params[i].key_param.integer;
 			break;
 		default:
+			EMSG("%s %d", __func__, __LINE__);
 			DMSG("Unused parameter with tag %x",
 					key_params->params[i].tag);
 		}
@@ -695,7 +713,7 @@ keymaster_error_t TA_check_params(keymaster_key_blob_t *key,
 	for (uint32_t z = 0; z < purpose_count; z++) {
 		EMSG("purpose[%u] = %d", z, purpose[z]);
 	}
-	EMSG("op_purpose = %d", op_purpose);
+	EMSG("op_purpose = %d purpose_count = %u", op_purpose, purpose_count);
 
 	if (*algorithm == KM_ALGORITHM_EC &&
 				(op_purpose == KM_PURPOSE_ENCRYPT ||
