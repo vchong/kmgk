@@ -147,6 +147,75 @@ error:
 	return res;
 }
 
+TEE_Result TA_execute_cbc(uint8_t *data, const size_t size, const uint32_t mode)
+{
+	uint8_t *outbuf = NULL;
+	uint32_t outbuf_size = size;
+	TEE_OperationHandle op = TEE_HANDLE_NULL;
+	TEE_ObjectInfo info;
+	TEE_Result res;
+	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
+
+	EMSG("%s %d", __func__, __LINE__);
+	res = TA_open_secret_key(&secretKey);
+	if (res != KM_ERROR_OK) {
+		EMSG("Failed to read secret key");
+		goto exit;
+	}
+	outbuf = TEE_Malloc(size, TEE_MALLOC_FILL_ZERO);
+	if (!outbuf) {
+		EMSG("failed to allocate memory for out buffer");
+		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
+		goto exit;
+	}
+	if (size % BLOCK_SIZE != 0) {
+		/* check size alignment */
+		EMSG("Size alignment check failed");
+		res = KM_ERROR_UNKNOWN_ERROR;
+		goto exit;
+	}
+	TEE_GetObjectInfo1(secretKey, &info);
+
+	EMSG("%s %d", __func__, __LINE__);
+	res = TEE_AllocateOperation(&op, TEE_ALG_AES_CBC_NOPAD, mode, info.maxKeySize);
+	if (res != TEE_SUCCESS) {
+		EMSG("Failed to allocate AES operation, res=%x", res);
+		goto exit;
+	}
+
+	//Use persistent key objects
+	EMSG("%s %d", __func__, __LINE__);
+	res = TEE_SetOperationKey(op, secretKey);
+	if (res != TEE_SUCCESS) {
+		EMSG("Failed to set secret key, res=%x", res);
+		goto free_op;
+	}
+	EMSG("%s %d", __func__, __LINE__);
+	TEE_CipherInit(op, iv, sizeof(iv));
+	if (res == TEE_SUCCESS && size > 0) {
+		EMSG("%s %d", __func__, __LINE__);
+		res = TEE_CipherDoFinal(op, data, size, outbuf, &outbuf_size);
+	}
+	if (res != TEE_SUCCESS)
+		EMSG("Error TEE_CipherDoFinal res=%x", res);
+	else {
+		EMSG("%s %d", __func__, __LINE__);
+		TEE_MemMove(data, outbuf, size);
+	}
+free_op:
+	if (op != TEE_HANDLE_NULL) {
+		EMSG("%s %d", __func__, __LINE__);
+		TEE_FreeOperation(op);
+	}
+exit:
+	if (outbuf != NULL) {
+		EMSG("%s %d", __func__, __LINE__);
+		TEE_Free(outbuf);
+	}
+	EMSG("%s %d", __func__, __LINE__);
+	return res;
+}
+
 TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 {
 	uint8_t *outbuf = NULL;
@@ -236,13 +305,13 @@ exit:
 TEE_Result TA_encrypt(uint8_t *data, const size_t size)
 {
 	EMSG("%s %d", __func__, __LINE__);
-	return TA_execute(data, size, TEE_MODE_ENCRYPT);
+	return TA_execute_cbc(data, size, TEE_MODE_ENCRYPT);
 }
 
 TEE_Result TA_decrypt(uint8_t *data, const size_t size)
 {
 	EMSG("%s %d", __func__, __LINE__);
-	return TA_execute(data, size, TEE_MODE_DECRYPT);
+	return TA_execute_cbc(data, size, TEE_MODE_DECRYPT);
 }
 
 void TA_free_master_key(void)
