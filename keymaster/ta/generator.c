@@ -629,8 +629,8 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 			/* will be freed when parameters array is destroyed */
 			buf = TEE_Malloc(attr_size, TEE_MALLOC_FILL_ZERO);
 			if (!buf) {
-				res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
-				EMSG("Failed to allocate memory for attribute");
+				res = KM_ERROR_INVALID_KEY_BLOB; //KM_ERROR_MEMORY_ALLOCATION_FAILED;
+				EMSG("Bad auth or failed to allocate memory for attribute");
 				/*
 				 * If error occurs, attrs_count should be equal i,
 				 * because free_attrs will try to free memory for elements,
