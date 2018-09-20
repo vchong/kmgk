@@ -261,7 +261,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 
 	key_buffer_size = TA_get_key_size(key_algorithm);
 
-	key_blob.key_material_size = characts_size + key_buffer_size;
+	key_blob.key_material_size = characts_size + key_buffer_size + TAG_LENGTH;
 	if (key_blob.key_material_size % BLOCK_SIZE != 0) {
 		/* do size alignment */
 		key_blob.key_material_size += BLOCK_SIZE -
@@ -518,7 +518,7 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto out;
 	key_buffer_size = TA_get_key_size(key_algorithm);
-	key_blob.key_material_size = characts_size + key_buffer_size;
+	key_blob.key_material_size = characts_size + key_buffer_size + TAG_LENGTH;
 	if (key_blob.key_material_size % BLOCK_SIZE != 0) {
 		/* size alignment */
 		key_blob.key_material_size += BLOCK_SIZE -

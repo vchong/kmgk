@@ -224,9 +224,8 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_ObjectInfo info;
 	TEE_Result res;
 	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
-	static uint8_t tag[TAG_LENGTH];
-	/* MUST init else error if < TAG_LENGTH */
-	static uint32_t tagLen = TAG_LENGTH;
+	uint8_t tag[TAG_LENGTH];
+	uint32_t tagLen = TAG_LENGTH;
 
 	EMSG("%s %d", __func__, __LINE__);
 	res = TA_open_secret_key(&secretKey);
@@ -266,15 +265,12 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_AEInit(op, iv, sizeof(iv), TAG_SIZE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
 		if (mode == TEE_MODE_ENCRYPT) {
-			EMSG("%s %d", __func__, __LINE__);
-			tagLen = TAG_LENGTH; //reset before encrypt
-			res = TEE_AEEncryptFinal(op, data, size, outbuf, &outbuf_size,
+			res = TEE_AEEncryptFinal(op, data, size - TAG_LENGTH, outbuf, &outbuf_size,
 				(void *)&tag, &tagLen);
 		}
 		else {
-			EMSG("%s %d", __func__, __LINE__);
-			res = TEE_AEDecryptFinal(op, data, size, outbuf, &outbuf_size,
-				(void *)&tag, tagLen);
+			res = TEE_AEDecryptFinal(op, data, size - TAG_LENGTH, outbuf, &outbuf_size,
+				(void *)(data + size - TAG_LENGTH), TAG_LENGTH);
 		}
 	}
 	/*
@@ -286,7 +282,9 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 		EMSG("Error TEE_AEFinal res=%x", res);
 	else {
 		EMSG("%s %d", __func__, __LINE__);
-		TEE_MemMove(data, outbuf, size);
+		TEE_MemMove(data, outbuf, size - TAG_LENGTH);
+		if (mode == TEE_MODE_ENCRYPT)
+			TEE_MemMove(data + size - TAG_LENGTH, tag, TAG_LENGTH);
 	}
 free_op:
 	if (op != TEE_HANDLE_NULL) {
