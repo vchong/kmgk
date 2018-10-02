@@ -594,7 +594,7 @@ Return<void>  OpteeKeymasterDevice::exportKey(KeyFormat exportFormat, const hidl
     if (!checkConnection(rc))
         goto error;
     if (!keyBlob.size() || kmKeyBlob.key_material == nullptr) {
-        rc = ErrorCode::INVALID_KEY_BLOB;
+        rc = ErrorCode::UNEXPECTED_NULL_POINTER;
     }
     memset(out, 0, outSize);
     memset(in, 0, inSize);
