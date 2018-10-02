@@ -227,7 +227,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	uint8_t tag[TAG_LENGTH];
 	uint32_t tagLen = TAG_LENGTH;
 
-	EMSG("%s %d", __func__, __LINE__);
+	EMSG("%s %d size = %zu", __func__, __LINE__, size);
 	res = TA_open_secret_key(&secretKey);
 	if (res != KM_ERROR_OK) {
 		EMSG("Failed to read secret key");
@@ -265,12 +265,16 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_AEInit(op, iv, sizeof(iv), TAG_SIZE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
 		if (mode == TEE_MODE_ENCRYPT) {
+			EMSG("%s %d tagLen = %u", __func__, __LINE__, tagLen);
 			res = TEE_AEEncryptFinal(op, data, size - TAG_LENGTH, outbuf, &outbuf_size,
 				(void *)&tag, &tagLen);
+			EMSG("%s %d tagLen = %u", __func__, __LINE__, tagLen);
 		}
 		else {
+			EMSG("%s %d tagLen = %u", __func__, __LINE__, tagLen);
 			res = TEE_AEDecryptFinal(op, data, size - TAG_LENGTH, outbuf, &outbuf_size,
 				(void *)(data + size - TAG_LENGTH), TAG_LENGTH);
+			EMSG("%s %d tagLen = %u", __func__, __LINE__, tagLen);
 		}
 	}
 	/*
