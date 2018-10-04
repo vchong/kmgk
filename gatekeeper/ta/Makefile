@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+CFG_TEE_TA_LOG_LEVEL ?= 3
+CPPFLAGS += -DCFG_TEE_TA_LOG_LEVEL=$(CFG_TEE_TA_LOG_LEVEL)
+
 # The UUID for the Trusted Application
 BINARY = 4d573443-6a56-4272-ac6f-2425af9ef9bb
 
