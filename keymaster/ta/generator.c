@@ -360,7 +360,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		attributes = attributes_rsa;
 		attr_count = KM_ATTR_COUNT_RSA;
 		type = TEE_TYPE_RSA_KEYPAIR;
-		EMSG("%s %d", __func__, __LINE__);
+		DMSG("%s %d", __func__, __LINE__);
 		attrs_in = TEE_Malloc(sizeof(TEE_Attribute),
 							TEE_MALLOC_FILL_ZERO);
 		if (!attrs_in) {
@@ -369,7 +369,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			goto gk_out;
 		}
 		attrs_in_count = 1;
-		EMSG("%s %d", __func__, __LINE__);
+		DMSG("%s %d", __func__, __LINE__);
 		buf_pe = TEE_Malloc(sizeof(rsa_public_exponent),
 							TEE_MALLOC_FILL_ZERO);
 		if (!buf_pe) {
@@ -378,14 +378,14 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			goto gk_out;
 		}
 		be_pe = TEE_U64_TO_BIG_ENDIAN(rsa_public_exponent);
-		EMSG("%s %d", __func__, __LINE__);
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_MemMove(buf_pe, &be_pe, sizeof(rsa_public_exponent));
-		EMSG("%s %d", __func__, __LINE__);
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_InitRefAttribute(attrs_in,
 					TEE_ATTR_RSA_PUBLIC_EXPONENT,
 					(void *) buf_pe,
 					sizeof(rsa_public_exponent));
-		EMSG("%s %d", __func__, __LINE__);
+		DMSG("%s %d", __func__, __LINE__);
 		break;
 	case KM_ALGORITHM_EC:
 		attributes = attributes_ec;
@@ -412,14 +412,13 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 	default:
 		return KM_ERROR_UNSUPPORTED_ALGORITHM;
 	}
-	EMSG("%s %d", __func__, __LINE__);
+	DMSG("%s %d", __func__, __LINE__);
 	res = TEE_AllocateTransientObject(type, key_size, &obj_h);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate transient object, res=%x", res);
 		goto gk_out;
 	}
-	EMSG("%s %d", __func__, __LINE__);
-	EMSG("key_size = %u, sizeof(attrs_in) = %zu, attrs_in_count = %u",
+	DMSG("key_size = %u, sizeof(attrs_in) = %zu, attrs_in_count = %u",
 			key_size, sizeof(attrs_in), attrs_in_count);
 	res = TEE_GenerateKey(obj_h, key_size, attrs_in, attrs_in_count);
 	if (res != TEE_SUCCESS) {
@@ -430,39 +429,38 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		goto gk_out;
 	}
 
-	EMSG("%s %d", __func__, __LINE__);
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(key_material, &type, sizeof(type));
 	padding += sizeof(type);
-	EMSG("%s %d padding = %u", __func__, __LINE__, padding);
+	DMSG("padding = %u", padding);
 	TEE_MemMove(key_material + padding, &key_size, sizeof(key_size));
 	padding += sizeof(key_size);
-	EMSG("%s %d padding = %u", __func__, __LINE__, padding);
+	DMSG("padding = %u", padding);
 	for (uint32_t i = 0; i < attr_count; i++) {
 		attr_size = KM_MAX_ATTR_SIZE;
-		EMSG("%s %d i = %u", __func__, __LINE__, i);
+		DMSG("i = %u", i);
 		TEE_MemMove(key_material + padding, attributes + i,
 						sizeof(attributes[i]));
 		padding += sizeof(attributes[i]);
-		EMSG("%s %d padding = %u", __func__, __LINE__, padding);
+		DMSG("i = %u padding = %u", i, padding);
 		if (is_attr_value(attributes[i])) {
 			/* value */
-			EMSG("%s %d %u", __func__, __LINE__, i);
+			DMSG("i = %u", i);
 			res = TEE_GetObjectValueAttribute(obj_h,
 						attributes[i], &a, &b);
 			if (res != TEE_SUCCESS) {
 				EMSG("Failed to get value attribute, res = %x", res);
 				break;
 			}
-			EMSG("%s %d %u", __func__, __LINE__, i);
 			TEE_MemMove(key_material + padding, &a, sizeof(a));
 			padding += sizeof(a);
-			EMSG("%s %d padding = %u a = %u", __func__, __LINE__, padding, a);
+			DMSG("i = %u padding = %u a = %u", i, padding, a);
 			TEE_MemMove(key_material + padding, &b, sizeof(b));
 			padding += sizeof(b);
-			EMSG("%s %d padding = %u b = %u", __func__, __LINE__, padding, b);
+			DMSG("i = %u padding = %u b = %u", i, padding, b);
 		} else {
 			/* buffer */
-			EMSG("%s %d %u", __func__, __LINE__, i);
+			DMSG("i = %u", i);
 			res = TEE_GetObjectBufferAttribute(obj_h,
 					attributes[i], buffer, &attr_size);
 			if (res != TEE_SUCCESS) {
@@ -470,14 +468,14 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 								attributes[i], res);
 				break;
 			}
-			EMSG("%s %d %u", __func__, __LINE__, i);
+			DMSG("i = %u", i);
 			TEE_MemMove(key_material + padding,
 					&attr_size, sizeof(attr_size));
 			padding += sizeof(attr_size);
-			EMSG("%s %d padding = %u attr_size = %u", __func__, __LINE__, padding, attr_size);
+			DMSG("i = %u padding = %u attr_size = %u", i, padding, attr_size);
 			TEE_MemMove(key_material + padding, buffer, attr_size);
 			padding += attr_size;
-			EMSG("%s %d padding = %u attr_size = %u", __func__, __LINE__, padding, attr_size);
+			DMSG("i = %u padding = %u attr_size = %u", i, padding, attr_size);
 		}
 	}
 gk_out:
@@ -547,7 +545,7 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	keymaster_algorithm_t algorithm;
 	keymaster_error_t res = KM_ERROR_OK;
 
-	EMSG("%s %d", __func__, __LINE__);
+	DMSG("%s %d", __func__, __LINE__);
 	if (!key_material) {
 		EMSG("Failed to allocate memory for key_material");
 		return KM_ERROR_MEMORY_ALLOCATION_FAILED;
@@ -574,27 +572,31 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	}
 	TEE_MemMove(type, key_material, sizeof(*type));
 	padding += sizeof(*type);
-	EMSG("%s %d padding = %u *type = 0x%x", __func__, __LINE__, padding, *type);
+	DMSG("padding = %u *type = 0x%x", padding, *type);
 	switch (*type) {
 	case TEE_TYPE_AES:
 		attrs_count = KM_ATTR_COUNT_AES_HMAC;
 		algorithm = KM_ALGORITHM_AES;
-		EMSG("%s %d AES attrs_count = %u algorithm = %d", __func__, __LINE__, attrs_count, algorithm);
+		DMSG("AES attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 		break;
 	case TEE_TYPE_RSA_KEYPAIR:
 		attrs_count = KM_ATTR_COUNT_RSA;
 		algorithm = KM_ALGORITHM_RSA;
-		EMSG("%s %d RSA attrs_count = %u algorithm = %d", __func__, __LINE__, attrs_count, algorithm);
+		DMSG("RSA attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 		break;
 	case TEE_TYPE_ECDSA_KEYPAIR:
 		attrs_count = KM_ATTR_COUNT_EC;
 		algorithm = KM_ALGORITHM_EC;
-		EMSG("%s %d EC attrs_count = %u algorithm = %d", __func__, __LINE__, attrs_count, algorithm);
+		DMSG("EC attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 		break;
 	default: /* HMAC */
 		attrs_count = KM_ATTR_COUNT_AES_HMAC;
 		algorithm = KM_ALGORITHM_HMAC;
-		EMSG("%s %d HMAC attrs_count = %u algorithm = %d", __func__, __LINE__, attrs_count, algorithm);
+		DMSG("HMAC attrs_count = %u algorithm = %d",
+				attrs_count, algorithm);
 	}
 	attrs = TEE_Malloc(attrs_count * sizeof(TEE_Attribute),
 						TEE_MALLOC_FILL_ZERO);
@@ -605,27 +607,29 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	}
 	TEE_MemMove(key_size, key_material + padding, sizeof(*key_size));
 	padding += sizeof(*key_size);
-	EMSG("%s %d *key_size = %u attrs_count = %u padding = %u", __func__, __LINE__, *key_size, attrs_count, padding);
+	DMSG("*key_size = %u attrs_count = %u padding = %u",
+			*key_size, attrs_count, padding);
 	for (uint32_t i = 0; i < attrs_count; i++) {
 		TEE_MemMove(&tag, key_material + padding, sizeof(tag));
 		padding += sizeof(tag);
-		EMSG("%s %d i = %u padding = %u tag = %u", __func__, __LINE__, i, padding, tag);
+		DMSG("i = %u padding = %u tag = %u", i, padding, tag);
 		if (is_attr_value(tag)) {
-			EMSG("%s %d", __func__, __LINE__);
+			DMSG("%s %d", __func__, __LINE__);
 			/* value */
 			TEE_MemMove(&a, key_material + padding, sizeof(a));
 			padding += sizeof(a);
-			EMSG("%s %d i = %u padding = %u a = %u", __func__, __LINE__, i, padding, a);
+			DMSG("i = %u padding = %u a = %u", i, padding, a);
 			TEE_MemMove(&b, key_material + padding, sizeof(b));
 			padding += sizeof(b);
-			EMSG("%s %d i = %u padding = %u b = %u", __func__, __LINE__, i, padding, b);
+			DMSG("i = %u padding = %u b = %u", i, padding, b);
 			TEE_InitValueAttribute(attrs + i, tag, a, b);
 		} else {
 			/* buffer */
 			TEE_MemMove(&attr_size, key_material + padding,
 							sizeof(attr_size));
 			padding += sizeof(attr_size);
-			EMSG("%s %d i = %u padding = %u attr_size = %u", __func__, __LINE__, i, padding, attr_size);
+			DMSG("i = %u padding = %u attr_size = %u",
+					i, padding, attr_size);
 			/* will be freed when parameters array is destroyed */
 			buf = TEE_Malloc(attr_size, TEE_MALLOC_FILL_ZERO);
 			if (!buf) {
@@ -641,7 +645,8 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 			}
 			TEE_MemMove(buf, key_material + padding, attr_size);
 			padding += attr_size;
-			EMSG("%s %d i = %u padding = %u attr_size = %u", __func__, __LINE__, i, padding, attr_size);
+			DMSG("i = %u padding = %u attr_size = %u",
+					i, padding, attr_size);
 			TEE_InitRefAttribute(attrs + i, tag, buf, attr_size);
 		}
 	}

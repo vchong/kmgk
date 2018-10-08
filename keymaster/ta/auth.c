@@ -63,7 +63,7 @@ TEE_Result TA_InitializeAuthTokenKey(void)
 		}
 
 		/*
-		 * TODO add fucntion that fill auth_token_key with
+		 * TODO add function that fill auth_token_key with
 		 * zeroes
 		 */
 

@@ -33,7 +33,7 @@ namespace V3_0 {
 namespace optee {
 
 static inline keymaster_tag_type_t typeFromTag(const keymaster_tag_t tag) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return keymaster_tag_get_type(tag);
 }
 
@@ -44,27 +44,27 @@ static inline keymaster_tag_type_t typeFromTag(const keymaster_tag_t tag) {
  *      single point of truth. Then this cast function can go away.
  */
 inline static keymaster_tag_t legacy_enum_conversion(const Tag value) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return keymaster_tag_t(value);
 }
 
 inline static Tag legacy_enum_conversion(const keymaster_tag_t value) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return Tag(value);
 }
 
 inline static keymaster_purpose_t legacy_enum_conversion(const KeyPurpose value) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return keymaster_purpose_t(value);
 }
 
 inline static keymaster_key_format_t legacy_enum_conversion(const KeyFormat value) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return keymaster_key_format_t(value);
 }
 
 inline static ErrorCode legacy_enum_conversion(const keymaster_error_t value) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return ErrorCode(value);
 }
 
@@ -75,7 +75,7 @@ KmParamSet::KmParamSet():
 keymaster_key_param_set_t{nullptr, 0} { }
 
 KmParamSet::KmParamSet(const hidl_vec<KeyParameter> &keyParams) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     params = new keymaster_key_param_t[keyParams.size()];
     length = keyParams.size();
     for (size_t i = 0; i < keyParams.size(); ++i) {
@@ -118,7 +118,7 @@ KmParamSet::KmParamSet(const hidl_vec<KeyParameter> &keyParams) {
 
 KmParamSet::KmParamSet(KmParamSet &&other):
     keymaster_key_param_set_t{other.params, other.length} {
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     other.length = 0;
     other.params = nullptr;
 }
@@ -126,19 +126,19 @@ KmParamSet::KmParamSet(KmParamSet &&other):
 KmParamSet::~KmParamSet() { delete[] params; }
 
 inline static KmParamSet hidlParams2KmParamSet(const hidl_vec<KeyParameter> &params) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     return KmParamSet(params);
 }
 
 inline static keymaster_blob_t hidlVec2KmBlob(const hidl_vec<uint8_t> &blob) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (blob.size())
         return {&blob[0], blob.size()};
     return {nullptr, 0};
 }
 
 inline static keymaster_key_blob_t hidlVec2KmKeyBlob(const hidl_vec<uint8_t> &blob) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (blob.size())
         return {&blob[0], blob.size()};
     return {nullptr, 0};
@@ -146,14 +146,14 @@ inline static keymaster_key_blob_t hidlVec2KmKeyBlob(const hidl_vec<uint8_t> &bl
 
 inline static hidl_vec<uint8_t> kmBlob2hidlVec(const keymaster_key_blob_t &blob) {
     hidl_vec<uint8_t> result;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     result.setToExternal(const_cast<unsigned char *>(blob.key_material), blob.key_material_size);
     return result;
 }
 
 inline static hidl_vec<uint8_t> kmBlob2hidlVec(const keymaster_blob_t &blob) {
     hidl_vec<uint8_t> result;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     result.setToExternal(const_cast<unsigned char *>(blob.data), blob.data_length);
     return result;
 }
@@ -161,7 +161,7 @@ inline static hidl_vec<uint8_t> kmBlob2hidlVec(const keymaster_blob_t &blob) {
 inline static hidl_vec<hidl_vec<uint8_t>> kmCertChain2Hidl(
                 const keymaster_cert_chain_t *cert_chain) {
     hidl_vec<hidl_vec<uint8_t>> result;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!cert_chain || cert_chain->entry_count == 0 || !cert_chain->entries)
         return result;
 
@@ -177,7 +177,7 @@ inline static hidl_vec<hidl_vec<uint8_t>> kmCertChain2Hidl(
 
 static inline hidl_vec<KeyParameter> kmParamSet2Hidl(const keymaster_key_param_set_t& set) {
     hidl_vec<KeyParameter> result;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (set.length == 0 || set.params == nullptr) return result;
 
     result.resize(set.length);
@@ -231,7 +231,7 @@ OpteeKeymasterDevice::~OpteeKeymasterDevice() {
 
 Return<void>  OpteeKeymasterDevice::getHardwareFeatures(getHardwareFeatures_cb _hidl_cb) {
     //send results off to the client
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     _hidl_cb(is_secure_, supports_ec_, supports_symmetric_cryptography_,
              supports_attestation_, supports_all_digests_,
              name_, author_);
@@ -244,7 +244,7 @@ Return<ErrorCode> OpteeKeymasterDevice::addRngEntropy(const hidl_vec<uint8_t> &d
     uint8_t in[in_size];
     /*Restrictions for max input data length 2KB*/
     const uint32_t maxInputData = 1024 * 2;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     if (!data.size())
@@ -271,25 +271,24 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     char *str = value;
 
     /**
-     * re: system/keymaster/keymaster_configuration.cpp
+     * system/keymaster/keymaster_configuration.cpp
      * uint32_t GetOsVersion(const char* version_str)
      * return (major * 100 + minor) * 100 + subminor;
      * = major * 10000 + minor * 100 + subminor
-     * = same here
      */
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (property_get("ro.build.version.release", value, "") <= 0) {
         ALOGE("Error get property ro.build.version.release");
         *in = 0xFFFFFFFF;
         goto exit;
     }
+    ALOGD("%s %d ro.build.version.release value = %s", __func__, __LINE__, value); //8.1.0 or Q
     *in = (uint32_t) std::atoi(str) * 10000;
-    ALOGD("ro.build.version.release value = %s %u\n", value, *value); //8.1.0 or Q
+    ALOGD("%s %d *in = %u", __func__, __LINE__, *in); //80000 or 0
     if (str)
-        ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //8.1.0 or Q
+        ALOGD("%s %d ro.build.version.release str = %s", __func__, __LINE__, str); //8.1.0 or Q
     else
-        ALOGD("%s %d str is null\n", __func__, __LINE__);
-    ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80000 or 0
+        ALOGD("%s %d str is null", __func__, __LINE__);
 
     /**
      * master branch returns an uppercase alphabet instead of a proper
@@ -297,9 +296,9 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
      * minor and subminor ignored
      */
     if (*value > 70 && *value < 91) {
-        ALOGD("Convert %s to corresponding version number\n", value);
+        ALOGD("Convert %s to corresponding version number", value);
         *in = (uint32_t) (*value - 71) * 10000;
-        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in);
+        ALOGD("%s %d *in = %u", __func__, __LINE__, *in);
         goto exit;
     }
 
@@ -312,20 +311,18 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     if ((std::strchr(str, '.') != NULL) && (*in < 80000)) {
         str = std::strchr(str, '.');
         *in += (uint32_t) std::atoi(str + 1) * 100;
-        ALOGD("%s %d\n", __func__, __LINE__);
+        ALOGD("%s %d *in = %u", __func__, __LINE__, *in); //80100
         if (str)
-            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //.1.0
+            ALOGD("%s %d ro.build.version.release str = %s", __func__, __LINE__, str); //.1.0
         else
-            ALOGD("%s %d str is null\n", __func__, __LINE__);
-        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
-    } else if (*in < 80000) { //or
+            ALOGD("%s %d str is null", __func__, __LINE__);
+    } else if (*in < 80000) {
         *in = 70000; //0xFFFFFFFF;
-        ALOGD("%s %d\n", __func__, __LINE__);
+        ALOGD("%s %d *in = %u", __func__, __LINE__, *in); //4294967295 = 0xFFFFFFFF
         if (str)
-            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str);
+            ALOGD("%s %d ro.build.version.release str = %s", __func__, __LINE__, str);
         else
-            ALOGD("%s %d str is null\n", __func__, __LINE__);
-        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //4294967295 = 0xFFFFFFFF
+            ALOGD("%s %d str is null", __func__, __LINE__);
         goto exit;
     }
 
@@ -338,26 +335,26 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
     if ((std::strchr(str + 1, '.') != NULL) && (*in < 80000)) {
         str = std::strchr(str + 1, '.');
         *in += (uint32_t) std::atoi(str + 1);
+        ALOGD("%s %d *in = %u", __func__, __LINE__, *in); //80100
         if (str)
-            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //.0
+            ALOGD("%s %d ro.build.version.release str = %s", __func__, __LINE__, str); //.0
         else
-            ALOGD("%s %d str is null\n", __func__, __LINE__);
-        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in); //80100
-    } else if (*in < 80000) { //or
+            ALOGD("%s %d str is null", __func__, __LINE__);
+    } else if (*in < 80000) {
         *in = 70000; //0xFFFFFFFF;
+        ALOGD("%s %d *in = %u", __func__, __LINE__, *in);
         if (str)
-            ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //(null)
+            ALOGD("%s %d ro.build.version.release str = %s", __func__, __LINE__, str); //(null)
         else
-            ALOGD("%s %d str is null\n", __func__, __LINE__);
-        ALOGD("%s %d *in = %u\n", __func__, __LINE__, *in);
+            ALOGD("%s %d str is null", __func__, __LINE__);
     }
 
-    ALOGD("ro.build.version.release value = %s\n", value); //8.1.0
+    ALOGD("%s %d ro.build.version.release value = %s", __func__, __LINE__, value); //8.1.0
+    ALOGD("%s %d *in = %u", __func__, __LINE__, *in); //80100
     if (str)
-        ALOGD("%s %d ro.build.version.release str = %s\n", __func__, __LINE__, str); //.0
+        ALOGD("%s %d ro.build.version.release str = %s", __func__, __LINE__, str); //.0
     else
-        ALOGD("%s %d str is null\n", __func__, __LINE__);
-    ALOGD("*in = %u\n sizeof(*in) = %zu\n", *in, sizeof(*in)); //80100 4
+        ALOGD("%s %d str is null", __func__, __LINE__);
 exit:
     return sizeof(*in);
 }
@@ -366,7 +363,7 @@ int OpteeKeymasterDevice::osPatchlevel(uint32_t *in) {
     char value[PROPERTY_VALUE_MAX] = {0,};
     char *str = value;
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (property_get("ro.build.version.security_patch", value, "") <= 0) {
         ALOGE("Error get property ro.build.version.security_patch");
         *in = 0xFFFFFFFF;
@@ -398,7 +395,7 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(out, 0, outSize);
@@ -410,11 +407,11 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
     ptr += osVersion((uint32_t *)ptr);
     ptr += osPatchlevel((uint32_t *)ptr);
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     rc = legacy_enum_conversion(
         optee_keystore_call(KM_GENERATE_KEY, in,
             inSize, out, outSize));
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (rc != ErrorCode::OK) {
         ALOGE("Generate key failed with error code %d [%x]", rc, rc);
         goto error;
@@ -426,13 +423,13 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
         ALOGE("Failed to deserialize key blob");
         goto error;
     }
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     ptr += deserializeKeyCharacteristics(kmKeyCharacteristics, ptr, rc);
     if (rc != ErrorCode::OK) {
         ALOGE("Failed to deserialize characteristics");
         goto error;
     }
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
 
     resultKeyBlob = kmBlob2hidlVec(kmKeyBlob);
     resultCharacteristics.softwareEnforced = kmParamSet2Hidl(kmKeyCharacteristics.sw_enforced);
@@ -468,7 +465,7 @@ Return<void>  OpteeKeymasterDevice::getKeyCharacteristics(const hidl_vec<uint8_t
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     if (!keyBlob.size() || kmKeyBlob.key_material == nullptr) {
@@ -524,7 +521,7 @@ Return<void>  OpteeKeymasterDevice::importKey(const hidl_vec<KeyParameter> &para
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(in, 0, inSize);
@@ -590,7 +587,7 @@ Return<void>  OpteeKeymasterDevice::exportKey(KeyFormat exportFormat, const hidl
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     if (!keyBlob.size() || kmKeyBlob.key_material == nullptr) {
@@ -611,7 +608,7 @@ Return<void>  OpteeKeymasterDevice::exportKey(KeyFormat exportFormat, const hidl
 
     ALOGE("%s %d Export key returned with code %d [%x]", __func__, __LINE__, rc, rc);
     if (rc != ErrorCode::OK) {
-        ALOGE("%s %d\n", __func__, __LINE__);
+        ALOGE("%s %d", __func__, __LINE__);
         ALOGE("Export key failed with code %d [%x]", rc, rc);
         goto error;
     }
@@ -638,7 +635,7 @@ error:
 int OpteeKeymasterDevice::verifiedBootState(uint8_t *in) {
     char value[PROPERTY_VALUE_MAX] = {0,};
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (property_get("ro.boot.verifiedbootstate", value, "") > 0) {
         if (value[0] == 'g') {
             *in = (uint8_t) 0x0;
@@ -672,7 +669,7 @@ Return<void>  OpteeKeymasterDevice::attestKey(const hidl_vec<uint8_t> &keyToAtte
     uint8_t in[inSize];
     uint8_t *perm = nullptr;
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(in, 0, inSize);
@@ -762,7 +759,7 @@ Return<void>  OpteeKeymasterDevice::upgradeKey(const hidl_vec<uint8_t> &keyBlobT
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(out, 0, outSize);
@@ -803,7 +800,7 @@ Return<ErrorCode>  OpteeKeymasterDevice::deleteKey(const hidl_vec<uint8_t> &keyB
     keymaster_key_blob_t kmKeyBlob = hidlVec2KmKeyBlob(keyBlob);
     int inSize = getKeyBlobSize(kmKeyBlob);
     uint8_t in[inSize];
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(in, 0, inSize);
@@ -819,7 +816,7 @@ Return<ErrorCode>  OpteeKeymasterDevice::deleteKey(const hidl_vec<uint8_t> &keyB
      * unusable before.
      */
     if (rc == ErrorCode::INVALID_KEY_BLOB) {
-        ALOGD("%s %d ErrorCode INVALID_KEY_BLOB returned as OK!\n", __func__, __LINE__);
+        ALOGD("%s %d ErrorCode INVALID_KEY_BLOB returned as OK!", __func__, __LINE__);
         rc = ErrorCode::OK;
     }
 
@@ -831,7 +828,7 @@ error:
 
 Return<ErrorCode> OpteeKeymasterDevice::deleteAllKeys() {
     ErrorCode rc = ErrorCode::OK;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     rc = legacy_enum_conversion(
@@ -844,7 +841,7 @@ error:
 
 Return<ErrorCode> OpteeKeymasterDevice::destroyAttestationIds() {
     ErrorCode rc = ErrorCode::OK;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         return rc;
     return ErrorCode::UNIMPLEMENTED;
@@ -865,7 +862,7 @@ Return<void> OpteeKeymasterDevice::begin(KeyPurpose purpose, const hidl_vec<uint
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     if (kmKey.key_material == nullptr) {
@@ -925,7 +922,7 @@ Return<void> OpteeKeymasterDevice::update(uint64_t operationHandle, const hidl_v
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(out, 0, outSize);
@@ -991,7 +988,7 @@ Return<void>  OpteeKeymasterDevice::finish(uint64_t operationHandle, const hidl_
     uint8_t out[outSize];
     uint8_t in[inSize];
     uint8_t *ptr = nullptr;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     ptr = in;
@@ -1039,7 +1036,7 @@ Return<ErrorCode>  OpteeKeymasterDevice::abort(uint64_t operationHandle) {
     ErrorCode rc = ErrorCode::OK;
     int inSize = sizeof(operationHandle);
     uint8_t in[inSize];
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!checkConnection(rc))
         goto error;
     memset(in, 0, inSize);
@@ -1055,7 +1052,7 @@ error:
 }
 
 bool OpteeKeymasterDevice::connect() {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (is_connected_) {
         ALOGE("Keymaster device is already connected");
         return false;
@@ -1070,7 +1067,7 @@ bool OpteeKeymasterDevice::connect() {
 }
 
 void OpteeKeymasterDevice::disconnect() {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (is_connected_) {
         optee_keystore_disconnect();
         is_connected_ = false;
@@ -1082,7 +1079,7 @@ void OpteeKeymasterDevice::disconnect() {
 }
 
 bool OpteeKeymasterDevice::checkConnection(ErrorCode &rc) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (!is_connected_) {
         ALOGE("Keymaster is not connected");
         rc = ErrorCode::SECURE_HW_COMMUNICATION_FAILED;
@@ -1092,7 +1089,7 @@ bool OpteeKeymasterDevice::checkConnection(ErrorCode &rc) {
 
 int OpteeKeymasterDevice::getParamSetBlobSize(const KmParamSet &paramSet) {
     int size = 0;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     for (size_t i = 0; i < paramSet.length; i++) {
         if (keymaster_tag_get_type(
                 paramSet.params[i].tag) == KM_BIGNUM ||
@@ -1105,7 +1102,7 @@ int OpteeKeymasterDevice::getParamSetBlobSize(const KmParamSet &paramSet) {
 
 int OpteeKeymasterDevice::getParamSetSize(const KmParamSet &paramSet) {
     int size = 0;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     size += getParamSetBlobSize(paramSet) + sizeof(paramSet.length) +
         paramSet.length * SIZE_OF_ITEM(paramSet.params);
     return size;
@@ -1113,14 +1110,14 @@ int OpteeKeymasterDevice::getParamSetSize(const KmParamSet &paramSet) {
 
 int OpteeKeymasterDevice::getBlobSize(const keymaster_blob_t &blob) {
     int size = 0;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     size += blob.data_length * SIZE_OF_ITEM(blob.data) + sizeof(size_t);
     return size;
 }
 
 int OpteeKeymasterDevice::getKeyBlobSize(const keymaster_key_blob_t &keyBlob) {
     int size = 0;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     size += keyBlob.key_material_size *
         SIZE_OF_ITEM(keyBlob.key_material) + sizeof(size_t);
     return size;
@@ -1132,7 +1129,7 @@ int OpteeKeymasterDevice::getKeyBlobSize(const keymaster_key_blob_t &keyBlob) {
 
 int OpteeKeymasterDevice::serializeData(uint8_t *dest, const size_t count,
                                     const uint8_t *source, const size_t objSize) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     memcpy(dest, &count, sizeof(count));
     dest += sizeof(count);
     memcpy(dest, source, count * objSize);
@@ -1140,7 +1137,7 @@ int OpteeKeymasterDevice::serializeData(uint8_t *dest, const size_t count,
 }
 
 int OpteeKeymasterDevice::serializeSize(uint8_t *dest, const size_t size) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     memcpy(dest, &size, sizeof(size));
     return sizeof(size);
 }
@@ -1148,7 +1145,7 @@ int OpteeKeymasterDevice::serializeSize(uint8_t *dest, const size_t size) {
 int OpteeKeymasterDevice::serializeParamSet(uint8_t *dest,
                                 const KmParamSet &paramSet) {
     uint8_t *start = dest;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     dest += serializeSize(dest, paramSet.length);
     for (size_t i = 0; i < paramSet.length; i++) {
         memcpy(dest, &paramSet.params[i], SIZE_OF_ITEM(paramSet.params));
@@ -1164,7 +1161,7 @@ int OpteeKeymasterDevice::serializeParamSet(uint8_t *dest,
 }
 
 int OpteeKeymasterDevice::serializePresence(uint8_t *dest, const presence p) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     memcpy(dest, &p, sizeof(presence));
     return sizeof(presence);
 }
@@ -1172,7 +1169,7 @@ int OpteeKeymasterDevice::serializePresence(uint8_t *dest, const presence p) {
 int OpteeKeymasterDevice::serializeParamSetWithPresence(uint8_t *dest,
                        const KmParamSet &params) {
     uint8_t *start = dest;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     dest += serializePresence(dest, KM_POPULATED);
     dest += serializeParamSet(dest, params);
     return dest - start;
@@ -1181,7 +1178,7 @@ int OpteeKeymasterDevice::serializeParamSetWithPresence(uint8_t *dest,
 int OpteeKeymasterDevice::serializeBlobWithPresenceInfo(uint8_t *dest, 
                     const keymaster_blob_t &blob, bool presence) {
     uint8_t *start = dest;
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     if (presence) {
         dest += serializePresence(dest, KM_POPULATED);
         dest += serializeData(dest, blob.data_length, blob.data,
@@ -1194,7 +1191,7 @@ int OpteeKeymasterDevice::serializeBlobWithPresenceInfo(uint8_t *dest,
 
 int OpteeKeymasterDevice::serializeKeyFormat(uint8_t *dest,
                 const keymaster_key_format_t &keyFormat) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     memcpy(dest, &keyFormat, sizeof(keyFormat));
     return sizeof(keyFormat);
 }
@@ -1204,7 +1201,7 @@ int OpteeKeymasterDevice::serializeKeyFormat(uint8_t *dest,
  ****************************************************************************/
 
 int OpteeKeymasterDevice::deserializeSize(size_t &size, const uint8_t *source) {
-	ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     memcpy(&size, source, sizeof(size));
     return sizeof(size);
 }
@@ -1215,7 +1212,7 @@ int OpteeKeymasterDevice::deserializeKeyBlob(keymaster_key_blob_t &keyBlob,
     uint8_t *material = nullptr;
     const uint8_t *start = source;
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     source += deserializeSize(size, source);
     keyBlob.key_material_size = size;
     material = new (std::nothrow) uint8_t[keyBlob.key_material_size];
@@ -1235,7 +1232,7 @@ int OpteeKeymasterDevice::deserializeKeyCharacteristics(keymaster_key_characteri
     size_t size = 0;
     const uint8_t *start = source;
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     source += deserializeSize(size, source);
     characteristics.hw_enforced.length = size;
     characteristics.hw_enforced.params =
@@ -1291,7 +1288,7 @@ int OpteeKeymasterDevice::deserializeBlob(keymaster_blob_t &blob,
     uint8_t *data = nullptr;
     const uint8_t *start = source;
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     source += deserializeSize(size, source);
     blob.data_length = size;
     data = new (std::nothrow) uint8_t[blob.data_length];
@@ -1312,7 +1309,7 @@ int OpteeKeymasterDevice::deserializeParamSet(KmParamSet &params,
     size_t size = 0;
     const uint8_t *start = source;
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d", __func__, __LINE__);
     source += deserializeSize(size, source);
     params.length = size;
     params.params = new (std::nothrow) keymaster_key_param_t[params.length];
