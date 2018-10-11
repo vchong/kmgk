@@ -154,7 +154,9 @@ keymaster_error_t TA_parse_params(const keymaster_key_param_set_t params_t,
 	*key_size = UNDEFINED; /*set default value*/
 
 	DMSG("%s %d", __func__, __LINE__);
+	DMSG("params_t.length = %zu", params_t.length);
 	for (size_t i = 0; i < params_t.length; i++) {
+		DMSG("TAG = 0x%x %d", (params_t.params + i)->tag, (params_t.params + i)->tag);
 		switch ((params_t.params + i)->tag) {
 		case KM_TAG_ALGORITHM:
 			*key_algorithm = (keymaster_algorithm_t)
