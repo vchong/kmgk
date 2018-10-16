@@ -225,6 +225,8 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	TA_add_origin(&params_t, KM_ORIGIN_GENERATED, true);
 	DMSG("%s %d", __func__, __LINE__);
 	TA_add_creation_datetime(&params_t, true);
+	DMSG("################## OS version: %ld, %ld\n", os_version,
+			os_patchlevel);
 	DMSG("%s %d", __func__, __LINE__);
 	TA_add_os_version_patchlevel(&params_t, os_version, os_patchlevel);
 
@@ -1144,12 +1146,14 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto out;
 
+	DMSG("%s %d", __func__, __LINE__);
 	input_provided = input.data_length;
 	res = TA_get_operation(operation_handle, &operation);
 	if (res != KM_ERROR_OK)
 		goto out;
 	key_material = TEE_Malloc(operation.key->key_material_size,
 						TEE_MALLOC_FILL_ZERO);
+	DMSG("%s %d", __func__, __LINE__);
 	res = TA_restore_key(key_material, operation.key, &key_size,
 						 &type, &obj_h, &params_t);
 	if (res != KM_ERROR_OK)
@@ -1162,15 +1166,20 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 		}
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (input.data_length != 0 && type == TEE_TYPE_RSA_KEYPAIR)
 		operation.got_input = true;
 	out_size = TA_possibe_size(type, key_size, input, 0);
 	output.data = TEE_Malloc(out_size, TEE_MALLOC_FILL_ZERO);
+
+	DMSG("%s %d", __func__, __LINE__);
 	if (!output.data) {
 		EMSG("Failed to allocate memory for output");
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		goto out;
 	}
+
+	DMSG("%s %d", __func__, __LINE__);
 	switch (type) {
 	case TEE_TYPE_AES:
 		res = TA_aes_update(&operation, &input, &output, &out_size,
@@ -1196,6 +1205,7 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 		goto out;
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(out, &input_consumed, sizeof(input_consumed));
 	out += SIZE_LENGTH;
 	out += TA_serialize_blob(out, &output);
@@ -1386,6 +1396,7 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx __unused,
 		return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;
 	}
 
+	DMSG("####################################################");
 	switch(cmd_id) {
 	//Keymaster commands:
 	case KM_ADD_RNG_ENTROPY:

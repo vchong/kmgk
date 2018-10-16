@@ -201,7 +201,7 @@ keymaster_error_t optee_keystore_call(uint32_t cmd, void* in, uint32_t in_size, 
     uint32_t res;
     uint32_t err_origin;
 
-    ALOGD("%s %d\n", __func__, __LINE__);
+    ALOGD("%s %d %u\n", __func__, __LINE__, cmd);
     if (!connected) {
         ALOGE("Keystore trusted application is not connected");
         return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;
@@ -219,7 +219,6 @@ keymaster_error_t optee_keystore_call(uint32_t cmd, void* in, uint32_t in_size, 
         op.params[1].tmpref.buffer = (void*)out;
         op.params[1].tmpref.size   = out_size;
 
-    ALOGD("%s %d %u\n", __func__, __LINE__, cmd);
     res = TEEC_InvokeCommand(&sess, cmd, &op, &err_origin);
     if (res != TEEC_SUCCESS) {
         ALOGI("TEEC_InvokeCommand failed with code 0x%08x (%s) origin 0x%08x",

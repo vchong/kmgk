@@ -19,6 +19,7 @@
 #include <cstring>
 #include <memory>
 #include <new>
+#include <iostream>
 
 #include "optee_keymaster.h"
 #include "optee_keymaster_ipc.h"
@@ -1142,6 +1143,9 @@ int OpteeKeymasterDevice::serializeParamSet(uint8_t *dest,
                     paramSet.params[i].blob.data,
                     SIZE_OF_ITEM(paramSet.params[i].blob.data));
         }
+        std::cout << "Client: tag" <<
+			keymaster_tag_get_type(paramSet.params[i].tag) <<
+			std::endl;
     }
     return dest - start;
 }
