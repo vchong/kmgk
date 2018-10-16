@@ -215,15 +215,23 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	in += TA_deserialize_param_set(in, in_end, &params_t, false, &res);
 	if (res != KM_ERROR_OK)
 		goto exit;
+	DMSG("%s %d", __func__, __LINE__);
 	memcpy(&os_version, in, sizeof(os_version));
 	in += 4;
+	DMSG("%s %d", __func__, __LINE__);
 	memcpy(&os_patchlevel, in, sizeof(os_patchlevel));
 	in += 4;
 	/*Add additional parameters*/
+	DMSG("%s %d", __func__, __LINE__);
 	TA_add_origin(&params_t, KM_ORIGIN_GENERATED, true);
+	DMSG("%s %d", __func__, __LINE__);
 	TA_add_creation_datetime(&params_t, true);
+	DMSG("################## OS version: %ld, %ld\n", os_version,
+			os_patchlevel);
+	DMSG("%s %d", __func__, __LINE__);
 	TA_add_os_version_patchlevel(&params_t, os_version, os_patchlevel);
 
+	DMSG("%s %d", __func__, __LINE__);
 	//Parse mandatory and optional parameters
 	res = TA_parse_params(params_t, &key_algorithm, &key_size,
 			      &key_rsa_public_exponent, &key_digest, false);
@@ -265,6 +273,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 			(key_blob.key_material_size % BLOCK_SIZE);
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	key_material = TEE_Malloc(key_blob.key_material_size,
 						TEE_MALLOC_FILL_ZERO);
 	if (!key_material) {
@@ -272,6 +281,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		goto exit;
 	}
+	DMSG("%s %d", __func__, __LINE__);
 	res = TA_generate_key(key_algorithm, key_size, key_material, key_digest,
 			key_rsa_public_exponent);
 	if (res != KM_ERROR_OK) {
@@ -280,8 +290,10 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	}
 	//TODO add bind keys to operating system and patch level version
 
+	DMSG("%s %d", __func__, __LINE__);
 	TA_serialize_param_set(key_material + key_buffer_size, &params_t);
 
+	DMSG("%s %d", __func__, __LINE__);
 	res = TA_encrypt(key_material, key_blob.key_material_size);
 	if (res != KM_ERROR_OK) {
 		EMSG("Failed to encrypt key blob, res=%x", res);
@@ -289,7 +301,9 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 	}
 	key_blob.key_material = key_material;
 
+	DMSG("%s %d", __func__, __LINE__);
 	out += TA_serialize_key_blob(out, &key_blob);
+	DMSG("%s %d", __func__, __LINE__);
 	out += TA_serialize_characteristics(out, &characts);
 exit:
 	if (key_material)
@@ -298,6 +312,7 @@ exit:
 	TA_free_params(&characts.hw_enforced);
 	TA_free_params(&params_t);
 
+	DMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 
@@ -580,17 +595,25 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	out = (uint8_t *) params[1].memref.buffer;
 
 	in += TA_deserialize_key_format(in, in_end, &export_format, &res);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		DMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	in += TA_deserialize_key_blob(in, in_end, &key_to_export, &res);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		DMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	in += TA_deserialize_blob(in, in_end, &client_id, true, &res, false);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		DMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	in += TA_deserialize_blob(in, in_end, &app_data, true, &res, false);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		DMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 
 	//Keymaster supports export of public keys only in X.509 format
 	if (export_format != KM_KEY_FORMAT_X509) {
@@ -607,11 +630,15 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 	}
 	res = TA_restore_key(key_material, &key_to_export, &key_size, &type,
 						 &obj_h, &params_t);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		DMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	res = TA_check_permission(&params_t, client_id, app_data, &exportable);
-	if (res != KM_ERROR_OK)
+	if (res != KM_ERROR_OK) {
+		DMSG("%s %d", __func__, __LINE__);
 		goto out;
+	}
 	if (!exportable && type != TEE_TYPE_RSA_KEYPAIR
 			&& type != TEE_TYPE_ECDSA_KEYPAIR) {
 		res = KM_ERROR_UNSUPPORTED_KEY_FORMAT;
@@ -623,20 +650,33 @@ static keymaster_error_t TA_exportKey(TEE_Param params[TEE_NUM_PARAMS])
 		goto out;
 	out += TA_serialize_blob(out, &export_data);
 out:
-	if (obj_h != TEE_HANDLE_NULL)
+	if (obj_h != TEE_HANDLE_NULL) {
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_FreeTransientObject(obj_h);
-	if (client_id.data)
+	}
+	if (client_id.data) {
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_Free(client_id.data);
-	if (app_data.data)
+	}
+	if (app_data.data) {
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_Free(app_data.data);
-	if (key_to_export.key_material)
+	}
+	if (key_to_export.key_material) {
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_Free(key_to_export.key_material);
-	if (key_material)
+	}
+	if (key_material) {
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_Free(key_material);
-	if (export_data.data)
+	}
+	if (export_data.data) {
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_Free(export_data.data);
+	}
 	TA_free_params(&params_t);
 
+	DMSG("%s %d", __func__, __LINE__);
 	return res;
 }
 
@@ -972,6 +1012,11 @@ static keymaster_error_t TA_begin(TEE_Param params[TEE_NUM_PARAMS])
 	key_material = TEE_Malloc(key.key_material_size, TEE_MALLOC_FILL_ZERO);
 	res = TA_restore_key(key_material, &key, &key_size,
 						 &type, &obj_h, &params_t);
+	/*
+	 * if res = KM_ERROR_INVALID_KEY_BLOB, go to TA_check_params
+	 * for more refined error code?
+	 */
+	//if (res != KM_ERROR_OK && res != KM_ERROR_INVALID_KEY_BLOB)
 	if (res != KM_ERROR_OK)
 		goto out;
 	switch (type) {
@@ -1102,12 +1147,14 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto out;
 
+	DMSG("%s %d", __func__, __LINE__);
 	input_provided = input.data_length;
 	res = TA_get_operation(operation_handle, &operation);
 	if (res != KM_ERROR_OK)
 		goto out;
 	key_material = TEE_Malloc(operation.key->key_material_size,
 						TEE_MALLOC_FILL_ZERO);
+	DMSG("%s %d", __func__, __LINE__);
 	res = TA_restore_key(key_material, operation.key, &key_size,
 						 &type, &obj_h, &params_t);
 	if (res != KM_ERROR_OK)
@@ -1120,15 +1167,20 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 		}
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (input.data_length != 0 && type == TEE_TYPE_RSA_KEYPAIR)
 		operation.got_input = true;
 	out_size = TA_possibe_size(type, key_size, input, 0);
 	output.data = TEE_Malloc(out_size, TEE_MALLOC_FILL_ZERO);
+
+	DMSG("%s %d", __func__, __LINE__);
 	if (!output.data) {
 		EMSG("Failed to allocate memory for output");
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		goto out;
 	}
+
+	DMSG("%s %d", __func__, __LINE__);
 	switch (type) {
 	case TEE_TYPE_AES:
 		res = TA_aes_update(&operation, &input, &output, &out_size,
@@ -1154,6 +1206,7 @@ static keymaster_error_t TA_update(TEE_Param params[TEE_NUM_PARAMS])
 		goto out;
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(out, &input_consumed, sizeof(input_consumed));
 	out += SIZE_LENGTH;
 	out += TA_serialize_blob(out, &output);
@@ -1344,6 +1397,7 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx __unused,
 		return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;
 	}
 
+	DMSG("####################################################");
 	switch(cmd_id) {
 	//Keymaster commands:
 	case KM_ADD_RNG_ENTROPY:

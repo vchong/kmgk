@@ -41,8 +41,10 @@ int TA_deserialize_blob(uint8_t *in, const uint8_t *end,
 		TEE_MemMove(&p, in, sizeof(p));
 		in += sizeof(p);
 	}
-	if (p == KM_NULL)
+	if (p == KM_NULL) {
+		DMSG("%s %d", __func__, __LINE__);
 		return sizeof(p);
+	}
 	if (IS_OUT_OF_BOUNDS(in, end, SIZE_LENGTH)) {
 		EMSG("Out of input array bounds on deserialization");
 		*res = KM_ERROR_INSUFFICIENT_BUFFER_SPACE;
@@ -68,9 +70,11 @@ int TA_deserialize_blob(uint8_t *in, const uint8_t *end,
 		blob->data = data;
 	} else {
 		/* Not allocate memory, it can be too large */
+		DMSG("%s %d", __func__, __LINE__);
 		blob->data = in;
 		in += blob->data_length;
 	}
+	DMSG("%s %d", __func__, __LINE__);
 	return in - start;
 }
 
@@ -170,6 +174,7 @@ int TA_deserialize_key_blob(const uint8_t *in, const uint8_t *end,
 	}
 	TEE_MemMove(key_material, in, key_blob->key_material_size);
 	key_blob->key_material = key_material;
+	DMSG("%s %d", __func__, __LINE__);
 	return KEY_BLOB_SIZE(key_blob);
 }
 

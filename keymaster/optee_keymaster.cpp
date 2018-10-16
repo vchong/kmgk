@@ -19,6 +19,7 @@
 #include <cstring>
 #include <memory>
 #include <new>
+#include <iostream>
 
 #include "optee_keymaster.h"
 #include "optee_keymaster_ipc.h"
@@ -307,6 +308,7 @@ int OpteeKeymasterDevice::osVersion(uint32_t *in) {
      * do NOT set str = strchr() in if statement below cos it'll mess
      * with the next str = strchr() in the next if statement if str =
      * single digit # without minor versions
+     * possible crash
      */
     if (std::strchr(str, '.') != NULL) {
         str = std::strchr(str, '.');
@@ -392,9 +394,11 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
     ptr += osVersion((uint32_t *)ptr);
     ptr += osPatchlevel((uint32_t *)ptr);
 
+    ALOGD("%s %d", __func__, __LINE__);
     rc = legacy_enum_conversion(
         optee_keystore_call(KM_GENERATE_KEY, in,
             inSize, out, outSize));
+    ALOGD("%s %d", __func__, __LINE__);
     if (rc != ErrorCode::OK) {
         ALOGE("Generate key failed with error code %d [%x]", rc, rc);
         goto error;
@@ -406,11 +410,13 @@ Return<void> OpteeKeymasterDevice::generateKey(const hidl_vec<KeyParameter> &key
         ALOGE("Failed to deserialize key blob");
         goto error;
     }
+    ALOGD("%s %d", __func__, __LINE__);
     ptr += deserializeKeyCharacteristics(kmKeyCharacteristics, ptr, rc);
     if (rc != ErrorCode::OK) {
         ALOGE("Failed to deserialize characteristics");
         goto error;
     }
+    ALOGD("%s %d", __func__, __LINE__);
 
     resultKeyBlob = kmBlob2hidlVec(kmKeyBlob);
     resultCharacteristics.softwareEnforced = kmParamSet2Hidl(kmKeyCharacteristics.sw_enforced);
@@ -587,7 +593,9 @@ Return<void>  OpteeKeymasterDevice::exportKey(KeyFormat exportFormat, const hidl
     rc = legacy_enum_conversion(
         optee_keystore_call(KM_EXPORT_KEY, in, inSize, out, outSize));
 
+    ALOGE("%s %d Export key returned with code %d [%x]", __func__, __LINE__, rc, rc);
     if (rc != ErrorCode::OK) {
+        ALOGE("%s %d", __func__, __LINE__);
         ALOGE("Export key failed with code %d [%x]", rc, rc);
         goto error;
     }
@@ -1142,6 +1150,9 @@ int OpteeKeymasterDevice::serializeParamSet(uint8_t *dest,
                     paramSet.params[i].blob.data,
                     SIZE_OF_ITEM(paramSet.params[i].blob.data));
         }
+        std::cout << "Client: tag" <<
+			keymaster_tag_get_type(paramSet.params[i].tag) <<
+			std::endl;
     }
     return dest - start;
 }

@@ -19,6 +19,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+/*
+ * [ 22% 2/9] target  C: android.hardware.keymaster@3.0-service.optee <= device/linaro/kmgk/keymaster/optee_keymaster_ipc.c
+ * In file included from device/linaro/kmgk/keymaster/optee_keymaster_ipc.c:22:
+ * system/core/libcutils/include_vndk/cutils/log.h:38:2: warning: "Deprecated: don't include cutils/log.h, use either android/log.h or log/log.h" [-W#warnings]
+ * #warning "Deprecated: don't include cutils/log.h, use either android/log.h or log/log.h"
+ * ^
+ * 1 warning generated.
+ */
 #include <log/log.h>
 #include <tee_client_api.h>
 #include <hardware/keymaster2.h>
@@ -199,7 +207,9 @@ keymaster_error_t optee_keystore_call(uint32_t cmd, void* in, uint32_t in_size, 
         return KM_ERROR_SECURE_HW_COMMUNICATION_FAILED;
     }
 
+    ALOGD("%s %d\n", __func__, __LINE__);
     (void)memset(&op, 0, sizeof(op));
+    ALOGD("%s %d\n", __func__, __LINE__);
     op.paramTypes = (uint32_t)TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT,
                                                TEEC_MEMREF_TEMP_OUTPUT,
                                                TEEC_NONE,
@@ -218,5 +228,6 @@ keymaster_error_t optee_keystore_call(uint32_t cmd, void* in, uint32_t in_size, 
                 optee_keystore_connect();
 	    }
     }
+    ALOGD("%s %d\n", __func__, __LINE__);
     return (keymaster_error_t)res;
 }
