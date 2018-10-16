@@ -30,6 +30,7 @@ TEE_Result TA_CreateEntryPoint(void)
 	TEE_Result		res = TEE_SUCCESS;
 	TEE_ObjectHandle	secretObj = TEE_HANDLE_NULL;
 
+	DMSG("%s %d", __func__, __LINE__);
 	DMSG("Checking master key secret");
 	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE, secret_ID,
 		sizeof(secret_ID), TEE_DATA_FLAG_ACCESS_READ, &secretObj);
@@ -63,6 +64,7 @@ TEE_Result TA_CreateEntryPoint(void)
 
 void TA_DestroyEntryPoint(void)
 {
+	DMSG("%s %d", __func__, __LINE__);
 }
 
 TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
@@ -72,6 +74,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE,
 						   TEE_PARAM_TYPE_NONE);
+	DMSG("%s %d", __func__, __LINE__);
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
 
@@ -86,6 +89,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 
 void TA_CloseSessionEntryPoint(void *sess_ctx)
 {
+	DMSG("%s %d", __func__, __LINE__);
 	/* Unused parameters */
 	(void)&sess_ctx;
 }
@@ -98,6 +102,7 @@ static TEE_Result TA_GetMasterKey(TEE_ObjectHandle masterKey)
 	TEE_ObjectHandle	secretObj = TEE_HANDLE_NULL;
 	uint32_t		readSize = 0;
 
+	DMSG("%s %d", __func__, __LINE__);
 	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE, secret_ID,
 		sizeof(secret_ID), TEE_DATA_FLAG_ACCESS_READ, &secretObj);
 	if (res != TEE_SUCCESS) {
@@ -137,6 +142,7 @@ static TEE_Result TA_ComputeSignature(uint8_t *signature, size_t signature_lengt
 	TEE_Result res;
 	uint32_t to_write;
 
+	DMSG("%s %d", __func__, __LINE__);
 	res = TEE_AllocateOperation(&op, TEE_ALG_HMAC_SHA256, TEE_MODE_MAC,
 			HMAC_SHA256_KEY_SIZE_BIT);
 	if (res != TEE_SUCCESS) {
@@ -177,6 +183,7 @@ static TEE_Result TA_ComputePasswordSignature(
 		const uint8_t *password, size_t password_length, salt_t salt)
 {
 	uint8_t salted_password[password_length + sizeof(salt)];
+	DMSG("%s %d", __func__, __LINE__);
 	memcpy(salted_password, &salt, sizeof(salt));
 	memcpy(salted_password + sizeof(salt), password, password_length);
 	return TA_ComputeSignature(signature, signature_length, key,
@@ -194,6 +201,7 @@ static TEE_Result TA_CreatePasswordHandle(password_handle_t *password_handle,
 		sizeof(pw_handle.version);
 	uint8_t to_sign[password_length + metadata_length];
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_ObjectHandle masterKey = TEE_HANDLE_NULL;
 	TEE_Result res;
 
@@ -248,7 +256,7 @@ static TEE_Result TA_GetAuthTokenKey(TEE_ObjectHandle key)
 	const TEE_UUID		uuid = TA_KEYMASTER_UUID;
 	TEE_Attribute		attrs[1];
 
-
+	DMSG("%s %d", __func__, __LINE__);
 	DMSG("Connect to keymaster");
 
 	paramTypes = TEE_PARAM_TYPES(TEE_PARAM_TYPE_NONE,
@@ -315,6 +323,7 @@ static void TA_MintAuthToken(hw_auth_token_t *auth_token, int64_t timestamp,
 	const uint8_t		*toSign = (const uint8_t *)&token;
 	const uint32_t		toSignLen = sizeof(token) - sizeof(token.hmac);
 
+	DMSG("%s %d", __func__, __LINE__);
 	token.version = HW_AUTH_TOKEN_VERSION;
 	token.challenge = challenge;
 	token.user_id = user_id;
@@ -357,6 +366,7 @@ static TEE_Result TA_DoVerify(const password_handle_t *expected_handle,
 	TEE_Result res;
 	password_handle_t password_handle;
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (!password_length) {
 		res = TEE_FALSE;
 		goto exit;
@@ -438,6 +448,7 @@ static TEE_Result TA_Enroll(TEE_Param params[TEE_NUM_PARAMS])
 	uint64_t flags = 0;
 	salt_t salt;
 
+	DMSG("%s %d", __func__, __LINE__);
 	deserialize_int(&i_req, &uid);
 	deserialize_blob(&i_req, &desired_password, &desired_password_length);
 	deserialize_blob(&i_req, &current_password, &current_password_length);
@@ -613,6 +624,7 @@ static TEE_Result TA_Verify(TEE_Param params[TEE_NUM_PARAMS])
 	uint64_t timestamp = GetTimestamp();
 	bool throttle;
 
+	DMSG("%s %d", __func__, __LINE__);
 	deserialize_int(&i_req, &uid);
 	deserialize_int64(&i_req, &challenge);
 	deserialize_blob(&i_req, &enrolled_password_handle,
@@ -723,14 +735,18 @@ TEE_Result TA_InvokeCommandEntryPoint(void *sess_ctx, uint32_t cmd_id,
 		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	DMSG("Gatekeeper TA invoke command cmd_id %u", cmd_id);
 
 	switch (cmd_id) {
 	case GK_ENROLL:
+		DMSG("GK_ENROLL");
 		return TA_Enroll(params);
 	case GK_VERIFY:
+		DMSG("GK_VERIFY");
 		return TA_Verify(params);
 	default:
+		DMSG("Unknown GK cmd_id");
 		return TEE_ERROR_BAD_PARAMETERS;
 	}
 

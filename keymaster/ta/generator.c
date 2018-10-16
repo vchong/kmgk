@@ -360,6 +360,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		attributes = attributes_rsa;
 		attr_count = KM_ATTR_COUNT_RSA;
 		type = TEE_TYPE_RSA_KEYPAIR;
+		DMSG("%s %d", __func__, __LINE__);
 		attrs_in = TEE_Malloc(sizeof(TEE_Attribute),
 							TEE_MALLOC_FILL_ZERO);
 		if (!attrs_in) {
@@ -368,6 +369,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			goto gk_out;
 		}
 		attrs_in_count = 1;
+		DMSG("%s %d", __func__, __LINE__);
 		buf_pe = TEE_Malloc(sizeof(rsa_public_exponent),
 							TEE_MALLOC_FILL_ZERO);
 		if (!buf_pe) {
@@ -376,11 +378,14 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			goto gk_out;
 		}
 		be_pe = TEE_U64_TO_BIG_ENDIAN(rsa_public_exponent);
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_MemMove(buf_pe, &be_pe, sizeof(rsa_public_exponent));
+		DMSG("%s %d", __func__, __LINE__);
 		TEE_InitRefAttribute(attrs_in,
 					TEE_ATTR_RSA_PUBLIC_EXPONENT,
 					(void *) buf_pe,
 					sizeof(rsa_public_exponent));
+		DMSG("%s %d", __func__, __LINE__);
 		break;
 	case KM_ALGORITHM_EC:
 		attributes = attributes_ec;
@@ -407,6 +412,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 	default:
 		return KM_ERROR_UNSUPPORTED_ALGORITHM;
 	}
+	DMSG("%s %d", __func__, __LINE__);
 	res = TEE_AllocateTransientObject(type, key_size, &obj_h);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate transient object, res=%x", res);
@@ -423,6 +429,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 		goto gk_out;
 	}
 
+	DMSG("%s %d", __func__, __LINE__);
 	TEE_MemMove(key_material, &type, sizeof(type));
 	padding += sizeof(type);
 	DMSG("padding = %u", padding);
@@ -431,12 +438,14 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 	DMSG("padding = %u", padding);
 	for (uint32_t i = 0; i < attr_count; i++) {
 		attr_size = KM_MAX_ATTR_SIZE;
+		DMSG("i = %u", i);
 		TEE_MemMove(key_material + padding, attributes + i,
 						sizeof(attributes[i]));
 		padding += sizeof(attributes[i]);
 		DMSG("i = %u padding = %u", i, padding);
 		if (is_attr_value(attributes[i])) {
 			/* value */
+			DMSG("i = %u", i);
 			res = TEE_GetObjectValueAttribute(obj_h,
 						attributes[i], &a, &b);
 			if (res != TEE_SUCCESS) {
@@ -451,6 +460,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 			DMSG("i = %u padding = %u b = %u", i, padding, b);
 		} else {
 			/* buffer */
+			DMSG("i = %u", i);
 			res = TEE_GetObjectBufferAttribute(obj_h,
 					attributes[i], buffer, &attr_size);
 			if (res != TEE_SUCCESS) {
@@ -458,6 +468,7 @@ keymaster_error_t TA_generate_key(const keymaster_algorithm_t algorithm,
 								attributes[i], res);
 				break;
 			}
+			DMSG("i = %u", i);
 			TEE_MemMove(key_material + padding,
 					&attr_size, sizeof(attr_size));
 			padding += sizeof(attr_size);
@@ -534,6 +545,7 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	keymaster_algorithm_t algorithm;
 	keymaster_error_t res = KM_ERROR_OK;
 
+	DMSG("%s %d", __func__, __LINE__);
 	if (!key_material) {
 		EMSG("Failed to allocate memory for key_material");
 		return KM_ERROR_MEMORY_ALLOCATION_FAILED;
@@ -543,6 +555,10 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 	res = TA_decrypt(key_material, key_blob->key_material_size);
 	if (res != TEE_SUCCESS) {
 		if (res == (keymaster_error_t)TEE_ERROR_MAC_INVALID) {
+			/*
+			 * if res = KM_ERROR_INVALID_KEY_BLOB, proceed anyway
+			 * for more refined error code?
+			 */
 			res = KM_ERROR_INVALID_KEY_BLOB;
 			EMSG("Decryption probably succeeded but auth failed");
 		}
@@ -598,6 +614,7 @@ keymaster_error_t TA_restore_key(uint8_t *key_material,
 		padding += sizeof(tag);
 		DMSG("i = %u padding = %u tag = %u", i, padding, tag);
 		if (is_attr_value(tag)) {
+			DMSG("%s %d", __func__, __LINE__);
 			/* value */
 			TEE_MemMove(&a, key_material + padding, sizeof(a));
 			padding += sizeof(a);
