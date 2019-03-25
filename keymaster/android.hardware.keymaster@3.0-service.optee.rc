@@ -1,3 +1,10 @@
+#early_hal needs to start as system
+service tee-supplicant /vendor/bin/tee-supplicant -d
+    class early_hal
+    user system
+    group shell inet system drmrpc
+    oneshot
+
 service hal_keymaster_optee /vendor/bin/hw/android.hardware.keymaster@3.0-service.optee
     class early_hal
     user system
