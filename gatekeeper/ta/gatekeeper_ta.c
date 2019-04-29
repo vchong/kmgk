@@ -31,14 +31,14 @@ TEE_Result TA_CreateEntryPoint(void)
 	TEE_ObjectHandle	secretObj = TEE_HANDLE_NULL;
 
 	DMSG("Checking master key secret");
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE, secret_ID,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB, secret_ID,
 		sizeof(secret_ID), TEE_DATA_FLAG_ACCESS_READ, &secretObj);
 	if (res == TEE_ERROR_ITEM_NOT_FOUND) {
 		uint8_t secretData[HMAC_SHA256_KEY_SIZE_BYTE];
 		DMSG("Create master key secret");
 
 		TEE_GenerateRandom(secretData, sizeof(secretData));
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE, secret_ID,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB, secret_ID,
 				sizeof(secret_ID), TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0, &secretObj);
 		if (res != TEE_SUCCESS) {
@@ -98,7 +98,7 @@ static TEE_Result TA_GetMasterKey(TEE_ObjectHandle masterKey)
 	TEE_ObjectHandle	secretObj = TEE_HANDLE_NULL;
 	uint32_t		readSize = 0;
 
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE, secret_ID,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB, secret_ID,
 		sizeof(secret_ID), TEE_DATA_FLAG_ACCESS_READ, &secretObj);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to open secret, error=%X", res);

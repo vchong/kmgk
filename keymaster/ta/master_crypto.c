@@ -39,7 +39,7 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 		return TEE_SUCCESS;
 	}
 
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
 			objID, sizeof(objID),
 			TEE_DATA_FLAG_ACCESS_READ, &object);
 
@@ -94,7 +94,7 @@ TEE_Result TA_create_secret_key(void)
 	uint8_t keyData[KEY_LENGTH];
 
 	DMSG("%s %d", __func__, __LINE__);
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
 				objID, sizeof(objID),
 				TEE_DATA_FLAG_ACCESS_READ, &object);
 
@@ -103,7 +103,7 @@ TEE_Result TA_create_secret_key(void)
 		TEE_GenerateRandom(keyData, sizeof(keyData));
 		TEE_GenerateRandom((void *)iv, sizeof(iv));
 
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB,
 				objID, sizeof(objID),
 				TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0U, &object);

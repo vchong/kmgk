@@ -36,7 +36,7 @@ TEE_Result TA_InitializeAuthTokenKey(void)
 
 	DMSG("Checking auth_token key secret");
 
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
 			auth_token_key_id, sizeof(auth_token_key_id),
 			TEE_DATA_FLAG_ACCESS_READ, &auth_token_key_obj);
 
@@ -45,7 +45,7 @@ TEE_Result TA_InitializeAuthTokenKey(void)
 		DMSG("Create auth_token key secret");
 
 		TEE_GenerateRandom(auth_token_key, sizeof(auth_token_key));
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB,
 				auth_token_key_id, sizeof(auth_token_key_id),
 				TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0, &auth_token_key_obj);
@@ -117,7 +117,7 @@ static TEE_Result TA_ReadAuthTokenKey(uint8_t *key, uint32_t key_size)
 	TEE_ObjectHandle auth_token_key_obj = TEE_HANDLE_NULL;
 	uint32_t read_size = 0;
 
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
 			auth_token_key_id, sizeof(auth_token_key_id),
 			TEE_DATA_FLAG_ACCESS_READ | TEE_DATA_FLAG_SHARE_READ,
 			&auth_token_key_obj);
