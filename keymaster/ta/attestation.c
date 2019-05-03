@@ -38,7 +38,7 @@ void TA_enum_attest_objs(void)
 	res = TEE_AllocatePersistentObjectEnumerator(&objectEnumerator);
 	if (res == TEE_SUCCESS) {
 		res = TEE_StartPersistentObjectEnumerator(objectEnumerator,
-				TEE_STORAGE_PRIVATE_RPMB);
+				TEE_STORAGE_PRIVATE);
 		if (res == TEE_SUCCESS) {
 			while (TEE_GetNextPersistentObject(objectEnumerator, &objInfo,
 					objectID, &objectIDLen) == TEE_SUCCESS) {
@@ -63,28 +63,28 @@ void TA_wipe_attest_objs(void)
 			TEE_DATA_FLAG_SHARE_READ |
 			TEE_DATA_FLAG_SHARE_WRITE;
 	DMSG("Wipe persistent objects!");
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			RsaAttKeyID, sizeof(RsaAttKeyID),
 				flags, &object);
 	if (res == TEE_SUCCESS) {
 		TEE_CloseAndDeletePersistentObject1(object);
 		DMSG("Deleted RSA key!");
 	}
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			EcAttKeyID, sizeof(EcAttKeyID),
 				flags, &object);
 	if (res == TEE_SUCCESS) {
 		TEE_CloseAndDeletePersistentObject1(object);
 		DMSG("Deleted EC key!");
 	}
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			RSARootAttCertID, sizeof(RSARootAttCertID),
 				flags, &object);
 	if (res == TEE_SUCCESS) {
 		TEE_CloseAndDeletePersistentObject1(object);
 		DMSG("Deleted RSA cert!");
 	}
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			ECRootAttCertID, sizeof(ECRootAttCertID),
 				flags, &object);
 	if (res == TEE_SUCCESS) {
@@ -98,7 +98,7 @@ TEE_Result TA_open_rsa_attest_key(TEE_ObjectHandle *rsaKey)
 {
 	TEE_Result res = TEE_SUCCESS;
 	DMSG("Open RSA root attestation key");
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			RsaAttKeyID, sizeof(RsaAttKeyID),
 			TEE_DATA_FLAG_ACCESS_READ, rsaKey);
 	if (res == TEE_SUCCESS) {
@@ -115,7 +115,7 @@ TEE_Result TA_open_ec_attest_key(TEE_ObjectHandle *ecKey)
 {
 	TEE_Result res = TEE_SUCCESS;
 	DMSG("Open EC root attestation key");
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			EcAttKeyID, sizeof(EcAttKeyID),
 			TEE_DATA_FLAG_ACCESS_READ, ecKey);
 	if (res == TEE_SUCCESS) {
@@ -132,7 +132,7 @@ TEE_Result TA_open_root_rsa_attest_cert(TEE_ObjectHandle *attCert)
 {
 	TEE_Result res = TEE_SUCCESS;
 	DMSG("Open root RSA attestation certificate");
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			RSARootAttCertID, sizeof(RSARootAttCertID),
 			TEE_DATA_FLAG_ACCESS_READ, attCert);
 	if (res == TEE_SUCCESS) {
@@ -149,7 +149,7 @@ TEE_Result TA_open_root_ec_attest_cert(TEE_ObjectHandle *attCert)
 {
 	TEE_Result res = TEE_SUCCESS;
 	DMSG("Open root EC attestation certificate");
-	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+	res = TEE_OpenPersistentObject(TEE_STORAGE_PRIVATE,
 			ECRootAttCertID, sizeof(ECRootAttCertID),
 			TEE_DATA_FLAG_ACCESS_READ, attCert);
 	if (res == TEE_SUCCESS) {
@@ -189,7 +189,7 @@ TEE_Result TA_create_rsa_attest_key(void)
 			goto error_2;
 		}
 		//Create object in storage
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
 				RsaAttKeyID, sizeof(RsaAttKeyID),
 				TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0U, &RSAobject);
@@ -281,7 +281,7 @@ TEE_Result TA_create_ec_attest_key(void)
 			goto error_2;
 		}
 		//Create object in storage
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
 				EcAttKeyID, sizeof(EcAttKeyID),
 				TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0U, &ECobject);
@@ -386,7 +386,7 @@ TEE_Result TA_create_root_rsa_attest_cert(TEE_TASessionHandle sessionSTA)
 		}
 
 		//Create object in storage
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
 				RSARootAttCertID, sizeof(RSARootAttCertID),
 				TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0U, &CertObject);
@@ -449,7 +449,7 @@ TEE_Result TA_create_root_ec_attest_cert(TEE_TASessionHandle sessionSTA)
 		}
 
 		//Create object in storage
-		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE_RPMB,
+		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
 				ECRootAttCertID, sizeof(ECRootAttCertID),
 				TEE_DATA_FLAG_ACCESS_WRITE,
 				TEE_HANDLE_NULL, NULL, 0U, &CertObject);
