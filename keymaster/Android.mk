@@ -19,6 +19,8 @@
 #ifneq (,$(filter $(TARGET_PRODUCT), hikey))
 LOCAL_PATH:= $(call my-dir)
 
+include $(LOCAL_PATH)/android_flags.mk
+
 ################################################################################
 # Build keymaster HAL                                                          #
 ################################################################################
