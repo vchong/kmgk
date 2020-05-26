@@ -82,11 +82,13 @@ LOCAL_SHARED_LIBRARIES := \
 	libbinder \
 	android.hardware.keymaster@3.0 \
 	android.hardware.keymaster@4.0 \
+	android.hardware.keymaster@4.1 \
 	libhardware \
 	libhardware_legacy \
 	libhidlbase \
 	libhwbinder \
-	libkeymaster4support
+	libkeymaster4support \
+	libkeymaster4_1support
 
 include $(BUILD_EXECUTABLE)
 
