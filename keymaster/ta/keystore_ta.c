@@ -314,6 +314,8 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 
 	key_buffer_size = TA_get_key_size(key_algorithm);
 
+	DMSG("characts_size = %u key_buffer_size = %u", characts_size,
+		key_buffer_size);
 	key_blob.key_material_size = characts_size + key_buffer_size
 			+ TAG_LENGTH;
 
@@ -324,6 +326,7 @@ static keymaster_error_t TA_generateKey(TEE_Param params[TEE_NUM_PARAMS])
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		goto exit;
 	}
+	DMSG("key_size = %u", key_size);
 	res = TA_generate_key(key_algorithm, key_size, key_material, key_digest,
 			key_rsa_public_exponent);
 	if (res != KM_ERROR_OK) {
@@ -577,6 +580,8 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 	if (res != KM_ERROR_OK)
 		goto out;
 	key_buffer_size = TA_get_key_size(key_algorithm);
+	DMSG("characts_size = %u key_buffer_size = %u", characts_size,
+		key_buffer_size);
 	key_blob.key_material_size = characts_size + key_buffer_size
 			+ TAG_LENGTH;
 	key_material = TEE_Malloc(key_blob.key_material_size,
@@ -586,7 +591,7 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 		res = KM_ERROR_MEMORY_ALLOCATION_FAILED;
 		goto out;
 	}
-
+	DMSG("key_size = %u", key_size);
 	res = TA_import_key(key_algorithm, key_size, key_material, key_digest,
 						attrs_in, attrs_in_count);
 	if (res != KM_ERROR_OK) {

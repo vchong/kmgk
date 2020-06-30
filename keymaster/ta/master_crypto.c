@@ -59,6 +59,11 @@ TEE_Result TA_open_secret_key(TEE_ObjectHandle *secretKey)
 			goto close;
 		}
 
+		DMSG("keyData:");
+		DHEXDUMP(keyData, KEY_LENGTH);
+		DMSG("iv:");
+		DHEXDUMP(iv, IV_LENGTH);
+
 		TEE_InitRefAttribute(&attrs[0], TEE_ATTR_SECRET_VALUE,
 				keyData, sizeof(keyData));
 
@@ -85,6 +90,7 @@ close:
 	}
 
 	if (res == TEE_SUCCESS) {
+		DMSG("*secretKey = masterKey");
 		*secretKey = masterKey;
 	}
 
@@ -107,6 +113,10 @@ TEE_Result TA_create_secret_key(void)
 		DMSG("no existing secret key, create it");
 		TEE_GenerateRandom(keyData, sizeof(keyData));
 		TEE_GenerateRandom((void *)iv, sizeof(iv));
+		DMSG("keyData:");
+		DHEXDUMP(keyData, KEY_LENGTH);
+		DMSG("iv:");
+		DHEXDUMP(iv, IV_LENGTH);
 
 		res = TEE_CreatePersistentObject(TEE_STORAGE_PRIVATE,
 				objID, sizeof(objID),
@@ -173,6 +183,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 	TEE_GetObjectInfo1(secretKey, &info);
 
+	DMSG("info.maxKeySize = %u (shld b keylen o 16)", info.maxKeySize);
 	res = TEE_AllocateOperation(&op, TEE_ALG_AES_GCM, mode, info.maxKeySize);
 	if (res != TEE_SUCCESS) {
 		EMSG("Failed to allocate AES operation, res=%x", res);
@@ -187,21 +198,32 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 	TEE_AEInit(op, iv, sizeof(iv), TAG_LENGTH * BITS_IN_BYTE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
+		DMSG("inbuf:");
+		DHEXDUMP(data, size);
+
 		if (mode == TEE_MODE_ENCRYPT) {
 			DMSG("tagLen = %u", tagLen);
+			DHEXDUMP(tag, tagLen);
 			DMSG("zero out tag at end of buffer");
 			TEE_MemMove(data + size - TAG_LENGTH, tag, TAG_LENGTH);
 			res = TEE_AEEncryptFinal(op, data, size - TAG_LENGTH,
 					outbuf, &outbuf_size,
 					(void *)&tag, &tagLen);
 			DMSG("tagLen = %u", tagLen);
+			DHEXDUMP(tag, tagLen);
 		}
 		else {
+			DMSG("supplied tag:");
+			DHEXDUMP(data + size - TAG_LENGTH, TAG_LENGTH);
 			res = TEE_AEDecryptFinal(op, data, size - TAG_LENGTH,
 					outbuf, &outbuf_size,
 					(void *)(data + size - TAG_LENGTH), TAG_LENGTH);
 		}
 	}
+
+	DMSG("outbuf_size = %u", outbuf_size);
+	DHEXDUMP(outbuf, outbuf_size);
+
 	if (res != TEE_SUCCESS)
 		EMSG("Error TEE_AEFinal res=%x", res);
 	else {
@@ -209,6 +231,10 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 		if (mode == TEE_MODE_ENCRYPT)
 			TEE_MemMove(data + size - TAG_LENGTH, tag, TAG_LENGTH);
 	}
+
+	DMSG("outbuf + tag:");
+	DHEXDUMP(data, size);
+
 free_op:
 	if (op != TEE_HANDLE_NULL)
 		TEE_FreeOperation(op);
@@ -220,13 +246,13 @@ exit:
 
 TEE_Result TA_encrypt(uint8_t *data, const size_t size)
 {
-	DMSG("%s %d", __func__, __LINE__);
+	DMSG("%s %d size=%d", __func__, __LINE__, size);
 	return TA_execute(data, size, TEE_MODE_ENCRYPT);
 }
 
 TEE_Result TA_decrypt(uint8_t *data, const size_t size)
 {
-	DMSG("%s %d", __func__, __LINE__);
+	DMSG("%s %d size=%d", __func__, __LINE__, size);
 	return TA_execute(data, size, TEE_MODE_DECRYPT);
 }
 
