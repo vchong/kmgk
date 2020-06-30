@@ -6,7 +6,6 @@
         <interface>
         <name>IGatekeeper</name>
             <instance>default</instance>
-            <instance>optee</instance>
         </interface>
     </hal>
 </manifest>
