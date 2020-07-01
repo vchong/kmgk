@@ -104,6 +104,7 @@ TEE_Result TA_create_secret_key(void)
 
 	if (res == TEE_ERROR_ITEM_NOT_FOUND) {
 		//No such key, create it
+		DMSG("no existing secret key, create it");
 		TEE_GenerateRandom(keyData, sizeof(keyData));
 		TEE_GenerateRandom((void *)iv, sizeof(iv));
 
@@ -134,8 +135,10 @@ error:
 				TEE_CloseObject(object) :
 				TEE_CloseAndDeletePersistentObject(object);
 
+		DMSG("secret key created");
 	} else if (res == TEE_SUCCESS) {
 		//Key already exits
+		DMSG("secret key exist, just return");
 		TEE_CloseObject(object);
 	} else {
 		//Something wrong...
