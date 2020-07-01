@@ -153,7 +153,7 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	TEE_ObjectInfo info;
 	TEE_Result res;
 	TEE_ObjectHandle secretKey = TEE_HANDLE_NULL;
-	uint8_t tag[TAG_LENGTH];
+	uint8_t tag[TAG_LENGTH] = { 0 };
 	uint32_t tagLen = TAG_LENGTH;
 
 	DMSG("%s %d size = %zu", __func__, __LINE__, size);
@@ -186,6 +186,8 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	if (res == TEE_SUCCESS && size > 0) {
 		if (mode == TEE_MODE_ENCRYPT) {
 			DMSG("tagLen = %u", tagLen);
+			DMSG("zero out tag at end of buffer");
+			TEE_MemMove(data + size - TAG_LENGTH, tag, TAG_LENGTH);
 			res = TEE_AEEncryptFinal(op, data, size - TAG_LENGTH,
 					outbuf, &outbuf_size,
 					(void *)&tag, &tagLen);
