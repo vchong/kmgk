@@ -460,6 +460,7 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 	uint32_t characts_size = 0;
 	uint32_t key_size = UNDEFINED;
 	uint32_t attrs_in_count = 0;
+	uint32_t curve = UNDEFINED;
 	uint64_t key_rsa_public_exponent = UNDEFINED;
 
 	DMSG("%s %d", __func__, __LINE__);
@@ -547,7 +548,21 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 			res = KM_ERROR_UNSUPPORTED_KEY_SIZE;
 			goto out;
 		}
-		if (key_algorithm == KM_ALGORITHM_RSA) {
+		if (key_algorithm == KM_ALGORITHM_EC) {
+			curve = TA_get_curve_nist(key_size);
+			if (curve == UNDEFINED) {
+				EMSG("Failed to get ECC curve nist");
+				res = KM_ERROR_UNSUPPORTED_EC_CURVE;
+				goto out;
+			}
+			TEE_InitValueAttribute(
+					attrs_in + attrs_in_count,
+					TEE_ATTR_ECC_CURVE,
+					curve,
+					0);
+			attrs_in_count++;
+		} else { /* KM_ALGORITHM_RSA */
+
 			if (key_size > MAX_KEY_RSA) {
 				EMSG("RSA key size must be multiple of 8 and less than %u",
 								MAX_KEY_RSA);
@@ -556,7 +571,7 @@ static keymaster_error_t TA_importKey(TEE_Param params[TEE_NUM_PARAMS])
 			}
 		}
 	}
-	TA_add_to_params(&params_t, key_size, key_rsa_public_exponent);
+	TA_add_to_params(&params_t, key_size, key_rsa_public_exponent, curve);
 	res = TA_fill_characteristics(&characts,
 					&params_t, &characts_size);
 	if (res != KM_ERROR_OK)

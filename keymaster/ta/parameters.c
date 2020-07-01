@@ -51,15 +51,11 @@ void TA_free_cert_chain(keymaster_cert_chain_t *cert_chain)
 
 void TA_add_to_params(keymaster_key_param_set_t *params,
 		      const uint32_t key_size,
-		      const uint64_t rsa_public_exponent)
+		      const uint64_t rsa_public_exponent,
+		      const uint32_t curve)
 {
 	bool was_added = false;
-	uint32_t curve = TA_get_curve_nist(key_size);
 	DMSG("%s %d", __func__, __LINE__);
-
-	if (curve == UNDEFINED) {
-		DMSG("Failed to get ECC curve nist, key_size = %u", key_size);
-	}
 
 	if (key_size != UNDEFINED) {
 		for (size_t i = 0; i < params->length; i++) {

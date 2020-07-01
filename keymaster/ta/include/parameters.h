@@ -105,7 +105,8 @@ bool is_origination_purpose(const keymaster_purpose_t purpose);
 
 void TA_add_to_params(keymaster_key_param_set_t *params,
 				const uint32_t key_size,
-				const uint64_t rsa_public_exponent);
+				const uint64_t rsa_public_exponent,
+				const uint32_t curve);
 
 void TA_free_params(keymaster_key_param_set_t *params);
 
