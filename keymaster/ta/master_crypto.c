@@ -198,8 +198,8 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 	}
 	TEE_AEInit(op, iv, sizeof(iv), TAG_LENGTH * BITS_IN_BYTE, 0, 0);
 	if (res == TEE_SUCCESS && size > 0) {
-		DMSG("inbuf:");
-		DHEXDUMP(data, size);
+		//DMSG("inbuf:");
+		//DHEXDUMP(data, size);
 
 		if (mode == TEE_MODE_ENCRYPT) {
 			DMSG("tagLen = %u", tagLen);
@@ -221,8 +221,8 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 		}
 	}
 
-	DMSG("outbuf_size = %u", outbuf_size);
-	DHEXDUMP(outbuf, outbuf_size);
+	//DMSG("outbuf_size = %u", outbuf_size);
+	//DHEXDUMP(outbuf, outbuf_size);
 
 	if (res != TEE_SUCCESS)
 		EMSG("Error TEE_AEFinal res=%x", res);
@@ -232,8 +232,8 @@ TEE_Result TA_execute(uint8_t *data, const size_t size, const uint32_t mode)
 			TEE_MemMove(data + size - TAG_LENGTH, tag, TAG_LENGTH);
 	}
 
-	DMSG("outbuf + tag:");
-	DHEXDUMP(data, size);
+	//DMSG("outbuf + tag:");
+	//DHEXDUMP(outbuf, size);
 
 free_op:
 	if (op != TEE_HANDLE_NULL)
