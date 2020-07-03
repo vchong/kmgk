@@ -3,3 +3,4 @@ service vendor.keymaster-3-0-optee /vendor/bin/hw/android.hardware.keymaster@3.0
     class early_hal
     user system
     group system drmrpc shell
+    oneshot
