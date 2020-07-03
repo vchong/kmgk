@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
     }
     LOG(INFO) << "Waiting for Keymaster device";
     for (unsigned cycleCount = 0; cycleCount < 10 /* 10s, Not Forever */; ++cycleCount) {
+        /* BUT enumerateAvailableDevices() loops 1s Forever */
         auto keymasters = Keymaster::enumerateAvailableDevices();
 
         bool foundOptee = false;
