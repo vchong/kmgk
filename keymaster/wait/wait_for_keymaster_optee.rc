@@ -3,3 +3,4 @@ service wait_for_keymaster_optee /vendor/bin/hw/wait_for_keymaster_optee
     group root system
     priority -20
     ioprio rt 0
+    oneshot

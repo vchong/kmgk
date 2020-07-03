@@ -3,3 +3,4 @@ service vendor.gatekeeper-1-0-optee /vendor/bin/hw/android.hardware.gatekeeper@1
     class hal
     user system
     group system shell
+    oneshot
